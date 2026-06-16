@@ -11,9 +11,13 @@ if (($# == 0)); then
   brave-browser.desktop) echo "brave" ;;
   brave-origin-beta.desktop) echo "brave-origin" ;;
   microsoft-edge.desktop) echo "edge" ;;
+  vivaldi-stable.desktop) echo "vivaldi" ;;
   firefox.desktop) echo "firefox" ;;
   zen.desktop) echo "zen" ;;
   helium.desktop) echo "helium" ;;
+  floorp.desktop) echo "floorp" ;;
+  waterfox.desktop) echo "waterfox" ;;
+  librewolf.desktop) echo "librewolf" ;;
   *) xdg-settings get default-web-browser ;;
   esac
   exit 0
@@ -25,11 +29,15 @@ chrome) desktop_id="google-chrome.desktop"; name="Chrome"; glyph="󰊯" ;;
 brave) desktop_id="brave-browser.desktop"; name="Brave"; glyph="󰖟" ;;
 brave-origin) desktop_id="brave-origin-beta.desktop"; name="Brave Origin"; glyph="󰖟" ;;
 edge) desktop_id="microsoft-edge.desktop"; name="Edge"; glyph="󰇩" ;;
+vivaldi) desktop_id="vivaldi-stable.desktop"; name="Vivaldi"; glyph="" ;;
 firefox) desktop_id="firefox.desktop"; name="Firefox"; glyph="󰈹" ;;
 zen) desktop_id="zen.desktop"; name="Zen"; glyph="󰰷" ;;
 helium) desktop_id="helium.desktop"; name="Helium"; glyph="󰀘" ;;
+floorp) desktop_id="floorp.desktop"; name="Floorp"; glyph="󰈹" ;;
+waterfox) desktop_id="waterfox.desktop"; name="Waterfox"; glyph="󰈹" ;;
+librewolf) desktop_id="librewolf.desktop"; name="LibreWolf"; glyph="󰈹" ;;
 *)
-  echo "Usage: omarchy-default-browser <chromium|chrome|brave|brave-origin|edge|firefox|zen|helium>"
+  echo "Usage: omarchy-default-browser <chromium|chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf>"
   exit 1
   ;;
 esac

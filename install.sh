@@ -17,6 +17,10 @@ set -e
 
 echo "╔══════════════════════════════════════════╗"
 echo "║   Omarchy Browser Support — Installer    ║"
+echo "║   12 browsers: Chromium, Chrome, Brave,  ║"
+echo "║   Brave Origin, Edge, Vivaldi, Firefox,  ║"
+echo "║   Zen, Helium, Floorp, Waterfox,         ║"
+echo "║   LibreWolf                              ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 

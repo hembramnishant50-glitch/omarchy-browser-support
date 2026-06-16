@@ -372,9 +372,13 @@ show_setup_default_browser_menu() {
   browser_desktop_exists brave-browser.desktop && options="${options:+$options\n}󰖟  Brave"
   browser_desktop_exists brave-origin-beta.desktop && options="${options:+$options\n}󰖟  Brave Origin"
   browser_desktop_exists microsoft-edge.desktop && options="${options:+$options\n}󰇩  Edge"
+  browser_desktop_exists vivaldi-stable.desktop && options="${options:+$options\n}  Vivaldi"
   browser_desktop_exists firefox.desktop && options="${options:+$options\n}󰈹  Firefox"
   browser_desktop_exists zen.desktop && options="${options:+$options\n}󰰷  Zen"
   browser_desktop_exists helium.desktop && options="${options:+$options\n}󰀘  Helium"
+  browser_desktop_exists floorp.desktop && options="${options:+$options\n}󰈹  Floorp"
+  browser_desktop_exists waterfox.desktop && options="${options:+$options\n}󰈹  Waterfox"
+  browser_desktop_exists librewolf.desktop && options="${options:+$options\n}󰈹  LibreWolf"
 
   local current=""
   case "$(omarchy-default-browser)" in
@@ -383,9 +387,13 @@ show_setup_default_browser_menu() {
   brave) current="󰖟  Brave" ;;
   brave-origin) current="󰖟  Brave Origin" ;;
   edge) current="󰇩  Edge" ;;
+  vivaldi) current="  Vivaldi" ;;
   firefox) current="󰈹  Firefox" ;;
   zen) current="󰰷  Zen" ;;
   helium) current="󰀘  Helium" ;;
+  floorp) current="󰈹  Floorp" ;;
+  waterfox) current="󰈹  Waterfox" ;;
+  librewolf) current="󰈹  LibreWolf" ;;
   esac
 
   case $(menu "Default Browser" "$options" "" "$current") in
@@ -394,9 +402,13 @@ show_setup_default_browser_menu() {
   *"Brave Origin"*) omarchy-default-browser brave-origin ;;
   *Brave*) omarchy-default-browser brave ;;
   *Edge*) omarchy-default-browser edge ;;
+  *Vivaldi*) omarchy-default-browser vivaldi ;;
   *Firefox*) omarchy-default-browser firefox ;;
   *Zen*) omarchy-default-browser zen ;;
   *Helium*) omarchy-default-browser helium ;;
+  *Floorp*) omarchy-default-browser floorp ;;
+  *Waterfox*) omarchy-default-browser waterfox ;;
+  *LibreWolf*) omarchy-default-browser librewolf ;;
   *) show_setup_default_menu ;;
   esac
 }
@@ -518,14 +530,18 @@ show_install_menu() {
 }
 
 show_install_browser_menu() {
-  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Firefox\n󰰷  Zen\n󰀘  Helium") in
+  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Vivaldi\n󰈹  Firefox\n󰰷  Zen\n󰀘  Helium\n󰈹  Floorp\n󰈹  Waterfox\n󰈹  LibreWolf") in
   *Chrome*) present_terminal "omarchy-install-browser chrome" ;;
   *Edge*) present_terminal "omarchy-install-browser edge" ;;
   *"Brave Origin"*) present_terminal "omarchy-install-browser brave-origin" ;;
   *Brave*) present_terminal "omarchy-install-browser brave" ;;
+  *Vivaldi*) present_terminal "omarchy-install-browser vivaldi" ;;
   *Firefox*) present_terminal "omarchy-install-browser firefox" ;;
   *Zen*) present_terminal "omarchy-install-browser zen" ;;
   *Helium*) present_terminal "omarchy-install-browser helium" ;;
+  *Floorp*) present_terminal "omarchy-install-browser floorp" ;;
+  *Waterfox*) present_terminal "omarchy-install-browser waterfox" ;;
+  *LibreWolf*) present_terminal "omarchy-install-browser librewolf" ;;
   *) show_install_menu ;;
   esac
 }
@@ -689,14 +705,18 @@ show_remove_security_menu() {
 }
 
 show_remove_browser_menu() {
-  case $(menu "Remove" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Firefox\n󰰷  Zen\n󰀘  Helium") in
+  case $(menu "Remove" "  Chrome\n  Edge\n  Brave\n  Brave Origin\n  Vivaldi\n󰈹  Firefox\n󰰷  Zen\n󰀘  Helium\n󰈹  Floorp\n󰈹  Waterfox\n󰈹  LibreWolf") in
   *Chrome*) present_terminal "omarchy-remove-browser chrome" ;;
   *Edge*) present_terminal "omarchy-remove-browser edge" ;;
   *"Brave Origin"*) present_terminal "omarchy-remove-browser brave-origin" ;;
   *Brave*) present_terminal "omarchy-remove-browser brave" ;;
+  *Vivaldi*) present_terminal "omarchy-remove-browser vivaldi" ;;
   *Firefox*) present_terminal "omarchy-remove-browser firefox" ;;
   *Zen*) present_terminal "omarchy-remove-browser zen" ;;
   *Helium*) present_terminal "omarchy-remove-browser helium" ;;
+  *Floorp*) present_terminal "omarchy-remove-browser floorp" ;;
+  *Waterfox*) present_terminal "omarchy-remove-browser waterfox" ;;
+  *LibreWolf*) present_terminal "omarchy-remove-browser librewolf" ;;
   *) show_remove_menu ;;
   esac
 }

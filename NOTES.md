@@ -1,88 +1,94 @@
-# Technical Notes — Browser Integration
+# Technical Notes — Omarchy Browser Support Pack
 
 ## Overview
 
-Patched 5 Omarchy scripts under `~/.local/share/omarchy/bin/` to add Helium browser
-support and improve Firefox/Zen web app handling.
+Patches 5 Omarchy scripts under `~/.local/share/omarchy/bin/` to add support for
+**Vivaldi, Helium, Floorp, Waterfox, and LibreWolf** browsers, plus improved
+web app handling for Firefox and Zen.
 
-### Script: `omarchy-default-browser`
-
-**Purpose:** Get/set the default browser via `xdg-settings` + `xdg-mime`.
-
-**Added:**
-- Line 16: detect `helium.desktop` → output `"helium"`
-- Line 30: map `helium` → `helium.desktop` / `"Helium"` / glyph `󰀘`
-- Line 32: usage string updated to include `|helium`
-
-**Behavior:**
-- No args → reads current default from `xdg-settings`
-- With `helium` → runs `xdg-settings set`, `xdg-mime` for http/https/text/html
-- Sends notification: `󰀘    Helium is now the default browser`
-
-### Script: `omarchy-install-browser`
-
-**Purpose:** Install a browser with Omarchy's managed policies and theming.
-
-**Added (lines 89-96):**
-- AUR package: `helium-browser-bin`
-- Policy directory: `/etc/helium/policies/managed`
-- Chromium flags: `~/.config/helium-flags.conf`
-- Pattern matches Chrome/Brave/Edge (all Chromium forks)
-
-### Script: `omarchy-remove-browser`
-
-**Purpose:** Remove a browser, clean up config, fallback to Chromium.
-
-**Added (lines 69-75):**
-- Drops package, removes flags + policy files
-- Falls back to Chromium via `set_fallback_default_browser` if Helium was default
-
-### Script: `omarchy-menu`
-
-**Purpose:** Walker menu system (Setup/Install/Remove submenus).
-
-**Modified 3 functions:**
-
-| Function | Lines | Change |
-|----------|-------|--------|
-| `show_setup_default_browser_menu` | 368-402 | Detect `helium.desktop`, show in list, preselect if default, handle selection |
-| `show_install_browser_menu` | 520-531 | Add `󰀘  Helium` entry → `omarchy-install-browser helium` |
-| `show_remove_browser_menu` | 691-702 | Add `󰀘  Helium` entry → `omarchy-remove-browser helium` |
-
-### Script: `omarchy-launch-webapp`
-
-**Purpose:** Open a URL as a site-specific browser window.
-
-**Changed:** Complete rewrite of the dispatch logic.
-
-| Browser Type | Flag | Before | After |
-|-------------|------|--------|-------|
-| Chromium-based | `--app` | ✅ Worked | ✅ Worked |
-| Helium | `--app` | ❌ Fell back to Chromium | ✅ Uses Helium directly |
-| Firefox | `--new-window` | ❌ Fell back to Chromium | ✅ Uses Firefox directly |
-| Zen | `--new-window` | ❌ Fell back to Chromium | ✅ Uses Zen directly |
-| Unknown | `--app` with Chromium | ✅ Fallback | ✅ Fallback (same) |
+Total of **12 browsers** supported across all menus and commands.
 
 ---
 
-## File Inventory
+## Script Changes
 
-```
-~/.local/share/omarchy/bin/
-├── omarchy-default-browser    (patched)
-├── omarchy-install-browser    (patched)
-├── omarchy-remove-browser     (patched)
-├── omarchy-menu               (patched)
-├── omarchy-launch-webapp      (patched)
-├── omarchy-launch-browser     (unchanged — already works)
-```
+### `omarchy-default-browser`
 
-## Backup Files
+Detects and sets the default browser via `xdg-settings` + `xdg-mime`.
 
-The `install.sh` creates backups named `{file}.bak.{timestamp}`.
+**Added lines (detection):**
+- `vivaldi-stable.desktop` → `"vivaldi"`
+- `floorp.desktop` → `"floorp"`
+- `waterfox.desktop` → `"waterfox"`
+- `librewolf.desktop` → `"librewolf"`
 
-**To restore:** `bash restore.sh` — uses `git checkout` to restore originals from the
-Omarchy git repo at `~/.local/share/omarchy/`. This is more reliable than relying on
-backup files since the git repo always has the pristine originals.
+**Added lines (set):**
+- `vivaldi` → `vivaldi-stable.desktop` / `"Vivaldi"` / ``
+- `floorp` → `floorp.desktop` / `"Floorp"` / `󰈹`
+- `waterfox` → `waterfox.desktop` / `"Waterfox"` / `󰈹`
+- `librewolf` → `librewolf.desktop` / `"LibreWolf"` / `󰈹`
 
-Alternatively: `cd ~/.local/share/omarchy && git checkout -- bin/omarchy-*`
+### `omarchy-install-browser`
+
+**Vivaldi** (Chromium, official repo): `omarchy-pkg-add vivaldi`
+| Policy: `/etc/vivaldi/policies/managed` | Flags: `~/.config/vivaldi-flags.conf` | Theme applied
+
+**Floorp** (Firefox fork, AUR): `omarchy-pkg-aur-add floorp-bin`
+| Distribution: `/usr/lib/floorp/distribution` | Wayland env
+
+**Waterfox** (Firefox fork, AUR): `omarchy-pkg-aur-add waterfox-bin`
+| Distribution: `/usr/lib/waterfox/distribution` | Wayland env
+
+**LibreWolf** (Firefox fork, AUR): `omarchy-pkg-aur-add librewolf-bin`
+| Distribution: `/usr/lib/librewolf/distribution` | Wayland env
+
+### `omarchy-remove-browser`
+
+Each new browser:
+- Calls `set_fallback_default_browser` (reverts to Chromium if was default)
+- Drops package via `omarchy-pkg-drop`
+- Removes flags config and policy files (Chromium-based only)
+
+### `omarchy-launch-webapp`
+
+| Pattern | Flag | Before | After |
+|---------|------|--------|-------|
+| `chromium*`, `google-chrome*`, `brave*`, `microsoft-edge*`, `opera*`, `vivaldi*`, `helium*` | `--app` | ✅ Works | ✅ Works |
+| `firefox*`, `zen*`, `floorp*`, `waterfox*`, `librewolf*` | `--new-window` | ❌ Chromium fallback | ✅ Uses native browser |
+| anything else | Chromium `--app` | ✅ Fallback | ✅ Fallback |
+
+### `omarchy-menu`
+
+Three functions updated with all 12 browsers:
+
+| Function | Browsers listed |
+|----------|----------------|
+| `show_setup_default_browser_menu` | All 12 (auto-detected via desktop file) |
+| `show_install_browser_menu` | All 12 install options |
+| `show_remove_browser_menu` | All 12 remove options |
+
+---
+
+## Full Browser Reference
+
+| Browser | Desktop File | Package | Source | Engine | Web App |
+|---------|-------------|---------|--------|--------|---------|
+| Chromium | `chromium.desktop` | Pre-installed | — | Chromium | `--app` |
+| Chrome | `google-chrome.desktop` | `google-chrome` | AUR | Chromium | `--app` |
+| Brave | `brave-browser.desktop` | `brave-bin` | AUR | Chromium | `--app` |
+| Brave Origin | `brave-origin-beta.desktop` | `brave-origin-beta-bin` | AUR | Chromium | `--app` |
+| Edge | `microsoft-edge.desktop` | `microsoft-edge-stable-bin` | AUR | Chromium | `--app` |
+| **Vivaldi** | `vivaldi-stable.desktop` | `vivaldi` | Official | Chromium | `--app` |
+| **Helium** | `helium.desktop` | `helium-browser-bin` | AUR | Chromium | `--app` |
+| Firefox | `firefox.desktop` | `firefox` | Official | Firefox | `--new-window` |
+| Zen | `zen.desktop` | `zen-browser-bin` | AUR | Firefox | `--new-window` |
+| **Floorp** | `floorp.desktop` | `floorp-bin` | AUR | Firefox | `--new-window` |
+| **Waterfox** | `waterfox.desktop` | `waterfox-bin` | AUR | Firefox | `--new-window` |
+| **LibreWolf** | `librewolf.desktop` | `librewolf-bin` | AUR | Firefox | `--new-window` |
+
+---
+
+## Restore
+
+The `restore.sh` script uses `git checkout` from the Omarchy repo at
+`~/.local/share/omarchy/` — no backup files required.

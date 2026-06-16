@@ -10,7 +10,7 @@ case $browser in
 google-chrome* | brave* | microsoft-edge* | opera* | vivaldi* | chromium* | helium*)
   exec setsid uwsm-app -- "$browser_exec" --app="$1" "${@:2}"
   ;;
-firefox* | zen*)
+firefox* | zen* | floorp* | waterfox* | librewolf*)
   exec setsid uwsm-app -- "$browser_exec" --new-window "$1" "${@:2}"
   ;;
 *)

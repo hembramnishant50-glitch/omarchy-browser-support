@@ -94,8 +94,41 @@ helium)
   copy_chromium_flags ~/.config/helium-flags.conf
   announce_browser_installed "Helium"
   ;;
+vivaldi)
+  echo "Installing Vivaldi..."
+  omarchy-pkg-add vivaldi || exit 1
+
+  setup_policy_directory /etc/vivaldi/policies/managed
+  copy_chromium_flags ~/.config/vivaldi-flags.conf
+  omarchy-theme-set-browser
+  announce_browser_installed "Vivaldi"
+  ;;
+floorp)
+  echo "Installing Floorp..."
+  omarchy-pkg-aur-add floorp-bin || exit 1
+
+  setup_firefox_preferences /usr/lib/floorp/distribution
+  setup_firefox_wayland
+  announce_browser_installed "Floorp"
+  ;;
+waterfox)
+  echo "Installing Waterfox..."
+  omarchy-pkg-aur-add waterfox-bin || exit 1
+
+  setup_firefox_preferences /usr/lib/waterfox/distribution
+  setup_firefox_wayland
+  announce_browser_installed "Waterfox"
+  ;;
+librewolf)
+  echo "Installing LibreWolf..."
+  omarchy-pkg-aur-add librewolf-bin || exit 1
+
+  setup_firefox_preferences /usr/lib/librewolf/distribution
+  setup_firefox_wayland
+  announce_browser_installed "LibreWolf"
+  ;;
 *)
-  echo "Usage: omarchy-install-browser <chrome|brave|brave-origin|edge|firefox|zen|helium>"
+  echo "Usage: omarchy-install-browser <chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf>"
   exit 1
   ;;
 esac

@@ -73,8 +73,30 @@ helium)
   rm -f ~/.config/helium-flags.conf
   sudo rm -f /etc/helium/policies/managed/color.json
   ;;
+vivaldi)
+  echo "Removing Vivaldi..."
+  set_fallback_default_browser vivaldi-stable.desktop
+  omarchy-pkg-drop vivaldi
+  rm -f ~/.config/vivaldi-flags.conf
+  sudo rm -f /etc/vivaldi/policies/managed/color.json
+  ;;
+floorp)
+  echo "Removing Floorp..."
+  set_fallback_default_browser floorp.desktop
+  omarchy-pkg-drop floorp-bin
+  ;;
+waterfox)
+  echo "Removing Waterfox..."
+  set_fallback_default_browser waterfox.desktop
+  omarchy-pkg-drop waterfox-bin
+  ;;
+librewolf)
+  echo "Removing LibreWolf..."
+  set_fallback_default_browser librewolf.desktop
+  omarchy-pkg-drop librewolf-bin
+  ;;
 *)
-  echo "Usage: omarchy-remove-browser <chrome|brave|brave-origin|edge|firefox|zen|helium>"
+  echo "Usage: omarchy-remove-browser <chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf>"
   exit 1
   ;;
 esac

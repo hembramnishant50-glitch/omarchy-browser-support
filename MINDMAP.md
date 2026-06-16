@@ -1,98 +1,71 @@
 ```mermaid
 mindmap
-  root((Omarchy Browser<br/>Integration))
-    Helium
-      install["omarchy install browser helium<br/>AUR: helium-browser-bin"]
-      default["omarchy default browser helium<br/>xdg-settings + xdg-mime"]
-      remove["omarchy remove browser helium<br/>cleanup + Chromium fallback"]
-      webapp["omarchy launch webapp → --app mode"]
-      menu["Walker: Setup/Install/Remove menus"]
-    Firefox
-      install["omarchy install browser firefox<br/>(already supported)"]
-      default["omarchy default browser firefox<br/>(already supported)"]
-      webapp["omarchy launch webapp → --new-window<br/>⬆ NEW: was Chromium fallback"]
-    Zen
-      install["omarchy install browser zen<br/>(already supported)"]
-      default["omarchy default browser zen<br/>(already supported)"]
-      webapp["omarchy launch webapp → --new-window<br/>⬆ NEW: was Chromium fallback"]
+  root((Omarchy Browser<br/>Support Pack))
+    Chromium_based
+      Chromium["Pre-installed<br/>--app"]
+      Chrome["AUR: google-chrome<br/>--app"]
+      Brave["AUR: brave-bin<br/>--app"]
+      Brave_Origin["AUR: brave-origin-beta-bin<br/>--app"]
+      Edge["AUR: microsoft-edge-stable-bin<br/>--app"]
+      Vivaldi["OFFICIAL: vivaldi ⬆ NEW<br/>--app"]
+      Helium["AUR: helium-browser-bin ⬆ NEW<br/>--app"]
+    Firefox_based
+      Firefox["OFFICIAL: firefox<br/>--new-window ⬆ IMPROVED"]
+      Zen["AUR: zen-browser-bin<br/>--new-window ⬆ IMPROVED"]
+      Floorp["AUR: floorp-bin ⬆ NEW<br/>--new-window"]
+      Waterfox["AUR: waterfox-bin ⬆ NEW<br/>--new-window"]
+      LibreWolf["AUR: librewolf-bin ⬆ NEW<br/>--new-window"]
     Files_Patched
-      db["omarchy-default-browser<br/>+helium detection + set"]
-      ib["omarchy-install-browser<br/>+AUR + policy + flags"]
-      rb["omarchy-remove-browser<br/>+remove + cleanup + fallback"]
-      menu["omarchy-menu<br/>+3 submenu entries"]
-      wa["omarchy-launch-webapp<br/>+firefox/zen dispatch"]
+      default_browser["omarchy-default-browser<br/>12 browser detections"]
+      install_browser["omarchy-install-browser<br/>9 install paths"]
+      remove_browser["omarchy-remove-browser<br/>11 remove paths"]
+      menu["omarchy-menu<br/>Setup/Install/Remove menus"]
+      webapp["omarchy-launch-webapp<br/>Chromium --app / Firefox --new-window"]
 ```
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     omarchy-default-browser              │
-│  detect ──→ xdg-settings set ──→ xdg-mime ──→ notify   │
-│  helium.desktop    default-web-browser  http/https/html  │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  omarchy-default-browser                                 │
+│  ┌──────────────┐  ┌────────────────┐  ┌─────────────┐  │
+│  │ 12 browsers  │─→│ xdg-settings   │─→│ notify-send │  │
+│  │ detected via │  │ xdg-mime       │  │ "X is now   │  │
+│  │ desktop file │  │ (http/https/   │  │  default"   │  │
+│  │              │  │  text/html)    │  │             │  │
+│  └──────────────┘  └────────────────┘  └─────────────┘  │
+└──────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────┐
-│                     omarchy-install-browser              │
-│  helium-browser-bin (AUR)                                │
-│    ├── /etc/helium/policies/managed/                     │
-│    └── ~/.config/helium-flags.conf                       │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  omarchy-launch-webapp                                   │
+│                                                          │
+│  chromium/*/helium* ──→ --app "$url" ──→ uwsm-app exec   │
+│  firefox/zen/floorp/waterfox/librewolf ──→ --new-window  │
+│  anything else ──→ chromium --app (fallback)              │
+└──────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────┐
-│                     omarchy-remove-browser               │
-│  omarchy-pkg-drop helium-browser-bin                     │
-│    ├── rm ~/.config/helium-flags.conf                    │
-│    ├── sudo rm /etc/helium/policies/managed/color.json   │
-│    └── fallback → chromium if was default                │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│                     omarchy-launch-webapp                │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │ chromium │─→│ --app "$url" │─→│ uwsm-app exec     │  │
-│  │ helium   │─→│ --app "$url" │─→│ uwsm-app exec     │  │
-│  │ firefox  │─→│ --new-window │─→│ uwsm-app exec     │  │
-│  │ zen      │─→│ --new-window │─→│ uwsm-app exec     │  │
-│  │ other    │─→│ chromium     │─→│ uwsm-app exec     │  │
-│  └──────────┘  └──────────────┘  └───────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-
-## Walker Menu Flow
+## Walker Menu
 
 ```
 SUPER+Space
-├── Setup
-│   └── Defaults
-│       └── Browser
-│           ├── Chromium ◄── default
-│           ├── Chrome
-│           ├── Brave
-│           ├── Brave Origin
-│           ├── Edge
-│           ├── Firefox
-│           ├── Zen
-│           └── Helium   ◄── NEW
-├── Install
-│   └── Browser
-│       └── Helium       ◄── NEW
-└── Remove
-    └── Browser
-        └── Helium       ◄── NEW
+├── Setup → Defaults → Browser
+│   ├── Chromium ◄── default
+│   ├── Chrome / Brave / Brave Origin / Edge
+│   ├── Vivaldi ◄── NEW
+│   ├── Firefox / Zen / Helium
+│   ├── Floorp / Waterfox ◄── NEW
+│   └── LibreWolf ◄── NEW
+├── Install → Browser
+│   └── (all 12 browsers listed)
+└── Remove → Browser
+│   └── (all 12 browsers listed)
 ```
 
-## Install / Restore Flow
+## Restore Flow
 
 ```
-install.sh:
-  Download 5 files from GitHub
-  Backup originals → {file}.bak.{timestamp}
-  Copy patched files → ~/.local/share/omarchy/bin/
-  Message: "Done! omarchy restart walker"
-
 restore.sh:
-  Find latest .bak for each file
-  Copy .bak back → ~/.local/share/omarchy/bin/{file}
-  Remove .bak files
-  Message: "Done! omarchy restart walker"
+  cd ~/.local/share/omarchy
+  git checkout -- bin/omarchy-*
+  # No backups needed — git always has originals
 ```
