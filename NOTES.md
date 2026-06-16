@@ -81,4 +81,8 @@ support and improve Firefox/Zen web app handling.
 
 The `install.sh` creates backups named `{file}.bak.{timestamp}`.
 
-To restore: `bash restore.sh` or manually `cp {file}.bak.{timestamp} {file}`.
+**To restore:** `bash restore.sh` — uses `git checkout` to restore originals from the
+Omarchy git repo at `~/.local/share/omarchy/`. This is more reliable than relying on
+backup files since the git repo always has the pristine originals.
+
+Alternatively: `cd ~/.local/share/omarchy && git checkout -- bin/omarchy-*`
