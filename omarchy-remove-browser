@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # omarchy:summary=Remove a supported browser and clean up Omarchy browser defaults
-# omarchy:args=<chrome|brave|brave-origin|edge|firefox|zen>
-# omarchy:examples=omarchy remove browser firefox | omarchy remove browser brave
+# omarchy:args=<chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf>
+# omarchy:examples=omarchy remove browser firefox | omarchy remove browser brave | omarchy remove browser vivaldi | omarchy remove browser librewolf
 # omarchy:requires-sudo=true
 
 set_fallback_default_browser() {
@@ -56,6 +56,20 @@ brave-origin)
     sudo rm -rf /etc/brave
   fi
   ;;
+vivaldi)
+  echo "Removing Vivaldi..."
+  set_fallback_default_browser vivaldi-stable.desktop
+  omarchy-pkg-drop vivaldi
+  rm -f ~/.config/vivaldi-flags.conf
+  sudo rm -f /etc/vivaldi/policies/managed/color.json
+  ;;
+helium)
+  echo "Removing Helium..."
+  set_fallback_default_browser helium.desktop
+  omarchy-pkg-drop helium-browser-bin
+  rm -f ~/.config/helium-flags.conf
+  sudo rm -f /etc/helium/policies/managed/color.json
+  ;;
 firefox)
   echo "Removing Firefox..."
   set_fallback_default_browser firefox.desktop
@@ -65,20 +79,6 @@ zen)
   echo "Removing Zen..."
   set_fallback_default_browser zen.desktop
   omarchy-pkg-drop zen-browser-bin
-  ;;
-helium)
-  echo "Removing Helium..."
-  set_fallback_default_browser helium.desktop
-  omarchy-pkg-drop helium-browser-bin
-  rm -f ~/.config/helium-flags.conf
-  sudo rm -f /etc/helium/policies/managed/color.json
-  ;;
-vivaldi)
-  echo "Removing Vivaldi..."
-  set_fallback_default_browser vivaldi-stable.desktop
-  omarchy-pkg-drop vivaldi
-  rm -f ~/.config/vivaldi-flags.conf
-  sudo rm -f /etc/vivaldi/policies/managed/color.json
   ;;
 floorp)
   echo "Removing Floorp..."

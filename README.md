@@ -1,72 +1,127 @@
 <div align="center">
-  <h1>Omarchy Browser Support Pack</h1>
-  <p><strong>Extended browser integration for Omarchy Linux</strong></p>
-  <p>Install · Set as default · Launch · Web apps · Walker menu</p>
-  <p><strong>12 browsers · 5 patched scripts · One-click setup</strong></p>
+
+# 🌐 Omarchy Browser Support Pack
+
+**Extended browser integration for Omarchy Linux** — install any browser, make it the system default, and launch site-specific web apps — all from the Walker menu.
+
+![Browsers](https://img.shields.io/badge/browsers-12-2ea043)
+![Scripts patched](https://img.shields.io/badge/scripts%20patched-5-f59e0b)
+![Platform](https://img.shields.io/badge/platform-Arch%20Linux-1793d1)
+![Window manager](https://img.shields.io/badge/wm-Hyprland-14b8a6)
+![Display server](https://img.shields.io/badge/display-Wayland-c026d3)
+![Shell](https://img.shields.io/badge/shell-Bash-4eaa25)
+
+**12 browsers · 5 patched scripts · one-click setup**
+
 </div>
 
 ---
 
-## Overview
+## 🚀 Quick Start
 
-Omarchy ships with Chromium as the default browser. This pack adds full
-integration for 11 additional browsers — Chromium-based and Firefox-based alike.
+> [!TIP]
+> The installer backs up your original scripts automatically and installs all 5 patched files in one go.
 
-Every browser gets:
-- `omarchy default browser <name>` — set as system default
-- `omarchy install browser <name>` — install from official repos or AUR
-- `omarchy remove browser <name>` — clean removal with Chromium fallback
-- `omarchy launch webapp <url>` — site-specific window support
-- Walker menu entries under Setup > Defaults > Browser, Install > Browser,
-  and Remove > Browser
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
+omarchy restart walker
+```
 
 ---
 
-## Supported Browsers
+## 📑 Table of Contents
 
-| # | Browser | Engine | Package | Source | Web Apps | Status |
-|---|---------|--------|---------|--------|----------|--------|
-| 1 | Chromium | Chromium | Pre-installed | — | `--app` | ✅ Default |
-| 2 | Chrome | Chromium | `google-chrome` | AUR | `--app` | ✅ Existing |
-| 3 | Brave | Chromium | `brave-bin` | AUR | `--app` | ✅ Existing |
-| 4 | Brave Origin | Chromium | `brave-origin-beta-bin` | AUR | `--app` | ✅ Existing |
-| 5 | Edge | Chromium | `microsoft-edge-stable-bin` | AUR | `--app` | ✅ Existing |
-| 6 | **Vivaldi** | Chromium | `vivaldi` | **Official** | `--app` | 🆕 Added |
-| 7 | **Helium** | Chromium | `helium-browser-bin` | AUR | `--app` | 🆕 Added |
-| 8 | Firefox | Firefox | `firefox` | Official | `--new-window` | ✅ Existing |
-| 9 | Zen | Firefox | `zen-browser-bin` | AUR | `--new-window` | ✅ Existing |
-| 10 | **Floorp** | Firefox | `floorp-bin` | AUR | `--new-window` | 🆕 Added |
-| 11 | **Waterfox** | Firefox | `waterfox-bin` | AUR | `--new-window` | 🆕 Added |
-| 12 | **LibreWolf** | Firefox | `librewolf-bin` | AUR | `--new-window` | 🆕 Added |
+- [Supported Browsers](#supported-browsers)
+- [What This Pack Changes](#what-this-pack-changes)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Walker Menu](#walker-menu)
+- [Uninstall & Restore](#uninstall--restore)
+- [Files](#files)
+- [Browser Details](#browser-details)
+- [Notes](#notes)
+- [Links](#links)
 
 ---
 
-## What This Pack Changes
+## ✨ What You Get
 
-Five Omarchy scripts are patched to recognize and handle the new browsers:
+<div align="center">
 
-| Script | Purpose |
-|--------|---------|
+| 🌐 **12 Browsers** | 🧩 **5 Scripts Patched** | ⚡ **One-Click Setup** |
+| :---: | :---: | :---: |
+| Chromium- and Firefox-based, from official repos **and** AUR | Default browser, install, remove, menus, web apps | Auto-backups + git-based restore, no manual work |
+
+</div>
+
+Every browser gets full integration:
+
+- ✅ `omarchy default browser <name>` — set as system default
+- 📦 `omarchy install browser <name>` — install from official repos or AUR
+- 🗑️ `omarchy remove browser <name>` — clean removal with Chromium fallback
+- 🪟 `omarchy launch webapp <url>` — site-specific window support
+- 🗺️ Walker menu entries under **Setup → Defaults → Browser**, **Install → Browser**, and **Remove → Browser**
+
+> [!NOTE]
+> Omarchy ships with Chromium as the default browser. This pack does **not** change that — switch any time with `omarchy default browser <name>`.
+
+---
+
+## 🌐 Supported Browsers
+
+### 🔷 Chromium-Based (7)
+
+| Browser | Package | Source | Web Apps | Status |
+|---------|---------|--------|----------|--------|
+| Chromium | Pre-installed | — | `--app` | ✅ Default |
+| Chrome | `google-chrome` | AUR | `--app` | ✅ |
+| Brave | `brave-bin` | AUR | `--app` | ✅ |
+| Brave Origin | `brave-origin-beta-bin` | AUR | `--app` | ✅ |
+| Edge | `microsoft-edge-stable-bin` | AUR | `--app` | ✅ |
+| **Vivaldi** | `vivaldi` | **Official** | `--app` | 🆕 |
+| **Helium** | `helium-browser-bin` | AUR | `--app` | 🆕 |
+
+### 🦊 Firefox-Based (5)
+
+| Browser | Package | Source | Web Apps | Status |
+|---------|---------|--------|----------|--------|
+| Firefox | `firefox` | Official | `--new-window` | ✅ |
+| Zen | `zen-browser-bin` | AUR | `--new-window` | ✅ |
+| **Floorp** | `floorp-bin` | AUR | `--new-window` | 🆕 |
+| **Waterfox** | `waterfox-bin` | AUR | `--new-window` | 🆕 |
+| **LibreWolf** | `librewolf-bin` | AUR | `--new-window` | 🆕 |
+
+**Legend:** ✅ = works out of the box · 🆕 = added by this pack · **Bold** = added by this pack
+
+---
+
+## 🧩 What This Pack Changes
+
+Five Omarchy scripts are patched to recognize and handle every browser:
+
+| Script | What it does |
+|--------|--------------|
 | `omarchy-default-browser` | Detects and sets the default browser via `xdg-settings` and `xdg-mime` |
 | `omarchy-install-browser` | Installs a browser from official repos or AUR with managed policies |
 | `omarchy-remove-browser` | Removes a browser, cleans up config, falls back to Chromium |
-| `omarchy-menu` | Adds browser entries to the Walker menus (Setup/Install/Remove) |
+| `omarchy-menu` | Adds browser entries to the Walker menus (Setup / Install / Remove) |
 | `omarchy-launch-webapp` | Launches a URL as a site-specific window using the correct flag per engine |
 
-### Web App Behavior
+### 🪟 Web App Behavior
 
-| Engine | Flag | Example |
-|--------|------|---------|
-| Chromium-based (Chrome, Brave, Edge, Vivaldi, Helium, etc.) | `--app` | No UI chrome, standalone window |
-| Firefox-based (Firefox, Zen, Floorp, Waterfox, LibreWolf) | `--new-window` | Opens in a normal browser window |
-| Unknown / fallback | Chromium with `--app` | Falls back to Chromium |
+| Engine | Flag | Behavior |
+|--------|------|----------|
+| 🔷 Chromium-based (Chrome, Brave, Edge, Vivaldi, Helium, …) | `--app` | No UI chrome, standalone window |
+| 🦊 Firefox-based (Firefox, Zen, Floorp, Waterfox, LibreWolf) | `--new-window` | Opens in a normal browser window |
+| ❓ Unknown / fallback | Chromium with `--app` | Falls back to Chromium |
 
-Before this pack, Firefox and Zen web apps silently fell back to Chromium.
-Now they use the user's preferred browser.
+> [!IMPORTANT]
+> Before this pack, Firefox and Zen web apps **silently fell back to Chromium**.
+> Now they use the user's preferred browser.
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 ### Prerequisites
 
@@ -74,7 +129,7 @@ Now they use the user's preferred browser.
 - Walker (default launcher, comes with Omarchy)
 - `curl` (for one-click install)
 
-### Option 1: One-Click Install (recommended)
+### Option 1 — One-Click Install <sub>(recommended)</sub>
 
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
@@ -83,7 +138,7 @@ omarchy restart walker
 
 This downloads all 5 patched scripts, backs up the originals, and installs them.
 
-### Option 2: Manual Install
+### Option 2 — Manual Install
 
 ```bash
 # Download patched scripts
@@ -108,7 +163,7 @@ cp omarchy-* ~/.local/share/omarchy/bin/
 omarchy restart walker
 ```
 
-### Option 3: Use Individual Browsers Without Patching
+### Option 3 — Use Individual Browsers Without Patching
 
 Even without this pack, you can install and use any of these browsers via
 Omarchy's existing commands. Patching only adds Walker menu entries and
@@ -126,9 +181,59 @@ omarchy default browser vivaldi
 
 ---
 
-## Uninstall / Restore Originals
+## ⌨️ Usage
 
-### Option 1: One-Click Restore
+### Command Cheat Sheet
+
+| Command | Action |
+|---------|--------|
+| `omarchy default browser` | Show the current default |
+| `omarchy default browser <name>` | Set a new default browser |
+| `omarchy launch browser` | Open the default browser |
+| `omarchy launch browser <url>` | Open a URL in the default browser |
+| `omarchy launch webapp <url>` | Open a site-specific window |
+| `omarchy install browser <name>` | Install a browser |
+| `omarchy remove browser <name>` | Remove a browser + clean up |
+
+### Examples
+
+```bash
+omarchy default browser vivaldi      # Set Vivaldi
+omarchy default browser librewolf    # Set LibreWolf
+omarchy default browser chromium     # Back to stock Chromium
+
+omarchy launch browser https://x.com  # Open URL in default browser
+omarchy launch webapp https://x.com   # Site-specific window
+
+omarchy install browser floorp        # Install Floorp
+omarchy remove browser waterfox       # Remove Waterfox + cleanup
+```
+
+---
+
+## 🗺️ Walker Menu
+
+Press `SUPER+Space` and navigate:
+
+```
+SUPER+Space
+│
+├─ Setup
+│  └─ Defaults
+│     └─ Browser ──────────────── choose from all 12
+│
+├─ Install
+│  └─ Browser ─────────────────── pick any browser to install
+│
+└─ Remove
+   └─ Browser ─────────────────── pick any browser to remove
+```
+
+---
+
+## ♻️ Uninstall & Restore
+
+### Option 1 — One-Click Restore
 
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
@@ -139,7 +244,7 @@ The restore script uses `git checkout` from the Omarchy repository at
 `~/.local/share/omarchy/` to restore the original files. No backup files
 are required — the git repo always has the pristine originals.
 
-### Option 2: Manual Restore
+### Option 2 — Manual Restore
 
 ```bash
 cd ~/.local/share/omarchy
@@ -151,7 +256,7 @@ git checkout -- bin/omarchy-default-browser \
 omarchy restart walker
 ```
 
-### Option 3: Remove a Single Browser
+### Option 3 — Remove a Single Browser
 
 ```bash
 # Remove the browser package and clean up
@@ -164,46 +269,7 @@ omarchy default browser chromium
 
 ---
 
-## Usage
-
-### Set Default Browser
-
-```bash
-omarchy default browser              # Show current default
-omarchy default browser vivaldi      # Set Vivaldi
-omarchy default browser librewolf    # Set LibreWolf
-omarchy default browser chromium     # Back to stock Chromium
-```
-
-### Launch Browser
-
-```bash
-omarchy launch browser                # Open default browser
-omarchy launch browser https://x.com  # Open URL in default browser
-omarchy launch webapp https://x.com   # Site-specific window
-```
-
-### Install / Remove
-
-```bash
-omarchy install browser vivaldi       # Install Vivaldi
-omarchy install browser floorp        # Install Floorp
-omarchy remove browser waterfox       # Remove Waterfox + cleanup
-```
-
-### Walker Menu
-
-Press `SUPER+Space` and navigate:
-
-```
-Setup → Defaults → Browser  → (pick any of 12 browsers)
-Install → Browser            → (pick any browser to install)
-Remove → Browser             → (pick any browser to remove)
-```
-
----
-
-## Files
+## 📁 Files
 
 ### Patched Scripts
 
@@ -211,11 +277,11 @@ All files live in `~/.local/share/omarchy/bin/`:
 
 | File | Size | Lines Changed |
 |------|------|---------------|
-| `omarchy-default-browser` | 2.1 KB | +8 entries |
-| `omarchy-install-browser` | 3.8 KB | +4 install blocks |
-| `omarchy-remove-browser` | 2.9 KB | +4 remove blocks |
-| `omarchy-menu` | 34 KB | +12 browsers across 3 menus |
-| `omarchy-launch-webapp` | 803 B | +4 browser patterns |
+| `omarchy-default-browser` | 2.3 KB | +10 browser entries |
+| `omarchy-install-browser` | 3.9 KB | +5 install blocks |
+| `omarchy-remove-browser` | 2.9 KB | +5 remove blocks |
+| `omarchy-menu` | 34 KB | +15 browser entries across 3 menus |
+| `omarchy-launch-webapp` | 0.9 KB | +6 browser patterns |
 
 ### Unchanged Files
 
@@ -223,13 +289,13 @@ These scripts already worked correctly with all browser types:
 
 | File | Reason |
 |------|--------|
-| `omarchy-launch-browser` | Detects private flag via `--help` (works for Chrome, Firefox, and all forks) |
+| `omarchy-launch-browser` | Detects the private flag via `--help` (works for Chrome, Firefox, and all forks) |
 
 ---
 
-## Browser Details
+## 🔍 Browser Details
 
-### Chromium-Based Browsers
+### 🔷 Chromium-Based Browsers
 
 | Browser | Desktop File | Executable | Private Flag | Policy Dir | Flags Config |
 |---------|-------------|------------|-------------|------------|-------------|
@@ -241,7 +307,7 @@ These scripts already worked correctly with all browser types:
 | **Vivaldi** | `vivaldi-stable.desktop` | `vivaldi-stable` | `--incognito` | `/etc/vivaldi/policies/managed` | `~/.config/vivaldi-flags.conf` |
 | **Helium** | `helium.desktop` | `helium-browser` | `--incognito` | `/etc/helium/policies/managed` | `~/.config/helium-flags.conf` |
 
-### Firefox-Based Browsers
+### 🦊 Firefox-Based Browsers
 
 | Browser | Desktop File | Executable | Private Flag | Distribution Dir |
 |---------|-------------|------------|-------------|-----------------|
@@ -253,43 +319,47 @@ These scripts already worked correctly with all browser types:
 
 ---
 
-## Notes
+## 📝 Notes
 
-- **Persistence:** Patched files live in `~/.local/share/omarchy/bin/`, which
+- **💾 Persistence:** Patched files live in `~/.local/share/omarchy/bin/`, which
   is managed by the Omarchy git repository. Running `omarchy update` may
   overwrite them. Simply re-run `install.sh` after updates.
 
-- **Restore:** The `restore.sh` script uses `git checkout` from the Omarchy
+- **♻️ Restore:** The `restore.sh` script uses `git checkout` from the Omarchy
   repo — no separate backup files are needed. Original files are always one
   command away.
 
-- **Default browser:** Omarchy ships with Chromium as the system default.
+- **🔑 Default browser:** Omarchy ships with Chromium as the system default.
   This pack does not change that. Switch at any time with
   `omarchy default browser <name>`.
 
-- **Icon glyphs:** Each browser uses a Nerd Font icon. Browsers sharing the
+- **🎨 Icon glyphs:** Each browser uses a Nerd Font icon. Browsers sharing the
   same engine share the same icon family (e.g. all Firefox forks use `󰈹`).
 
-- **Wayland:** Firefox-based browsers get `MOZ_ENABLE_WAYLAND=1` set via
+- **🪟 Wayland:** Firefox-based browsers get `MOZ_ENABLE_WAYLAND=1` set via
   `~/.config/environment.d/omarchy-firefox-wayland.conf` at install time.
 
 ---
 
-## Links
+## 🔗 Links
 
-- [Omarchy](https://omarchy.org/)
-- [Helium Browser](https://heliumbrowser.com/)
-- [Vivaldi Browser](https://vivaldi.com/)
-- [Floorp Browser](https://floorp.app/)
-- [Waterfox Browser](https://www.waterfox.net/)
-- [LibreWolf Browser](https://librewolf.net/)
-- [AUR: helium-browser-bin](https://aur.archlinux.org/packages/helium-browser-bin)
-- [AUR: floorp-bin](https://aur.archlinux.org/packages/floorp-bin)
-- [AUR: waterfox-bin](https://aur.archlinux.org/packages/waterfox-bin)
-- [AUR: librewolf-bin](https://aur.archlinux.org/packages/librewolf-bin)
+| Project | Link |
+|---------|------|
+| Omarchy | [omarchy.org](https://omarchy.org/) |
+| Helium Browser | [heliumbrowser.com](https://heliumbrowser.com/) |
+| Vivaldi Browser | [vivaldi.com](https://vivaldi.com/) |
+| Floorp Browser | [floorp.app](https://floorp.app/) |
+| Waterfox Browser | [waterfox.net](https://www.waterfox.net/) |
+| LibreWolf Browser | [librewolf.net](https://librewolf.net/) |
+| AUR · helium-browser-bin | [aur.archlinux.org](https://aur.archlinux.org/packages/helium-browser-bin) |
+| AUR · floorp-bin | [aur.archlinux.org](https://aur.archlinux.org/packages/floorp-bin) |
+| AUR · waterfox-bin | [aur.archlinux.org](https://aur.archlinux.org/packages/waterfox-bin) |
+| AUR · librewolf-bin | [aur.archlinux.org](https://aur.archlinux.org/packages/librewolf-bin) |
 
 ---
 
 <div align="center">
-  <sub>Made for Omarchy · Arch Linux · Hyprland · Wayland</sub>
+
+Made for **Omarchy** · Arch Linux · Hyprland · Wayland
+
 </div>

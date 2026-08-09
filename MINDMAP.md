@@ -17,10 +17,10 @@ mindmap
       LibreWolf["AUR: librewolf-bin ⬆ NEW<br/>--new-window"]
     Files_Patched
       default_browser["omarchy-default-browser<br/>12 browser detections"]
-      install_browser["omarchy-install-browser<br/>9 install paths"]
+      install_browser["omarchy-install-browser<br/>11 install paths"]
       remove_browser["omarchy-remove-browser<br/>11 remove paths"]
       menu["omarchy-menu<br/>Setup/Install/Remove menus"]
-      webapp["omarchy-launch-webapp<br/>Chromium --app / Firefox --new-window"]
+      webapp["omarchy-launch-webapp<br/>Chromium --app / Firefox --new-window / fallback"]
 ```
 
 ## Architecture
@@ -51,8 +51,8 @@ SUPER+Space
 ├── Setup → Defaults → Browser
 │   ├── Chromium ◄── default
 │   ├── Chrome / Brave / Brave Origin / Edge
-│   ├── Vivaldi ◄── NEW
-│   ├── Firefox / Zen / Helium
+│   ├── Vivaldi / Helium ◄── NEW
+│   ├── Firefox / Zen
 │   ├── Floorp / Waterfox ◄── NEW
 │   └── LibreWolf ◄── NEW
 ├── Install → Browser

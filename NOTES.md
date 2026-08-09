@@ -18,12 +18,14 @@ Detects and sets the default browser via `xdg-settings` + `xdg-mime`.
 
 **Added lines (detection):**
 - `vivaldi-stable.desktop` → `"vivaldi"`
+- `helium.desktop` → `"helium"`
 - `floorp.desktop` → `"floorp"`
 - `waterfox.desktop` → `"waterfox"`
 - `librewolf.desktop` → `"librewolf"`
 
 **Added lines (set):**
 - `vivaldi` → `vivaldi-stable.desktop` / `"Vivaldi"` / ``
+- `helium` → `helium.desktop` / `"Helium"` / `󰀘`
 - `floorp` → `floorp.desktop` / `"Floorp"` / `󰈹`
 - `waterfox` → `waterfox.desktop` / `"Waterfox"` / `󰈹`
 - `librewolf` → `librewolf.desktop` / `"LibreWolf"` / `󰈹`
@@ -32,6 +34,9 @@ Detects and sets the default browser via `xdg-settings` + `xdg-mime`.
 
 **Vivaldi** (Chromium, official repo): `omarchy-pkg-add vivaldi`
 | Policy: `/etc/vivaldi/policies/managed` | Flags: `~/.config/vivaldi-flags.conf` | Theme applied
+
+**Helium** (Chromium, AUR): `omarchy-pkg-aur-add helium-browser-bin`
+| Policy: `/etc/helium/policies/managed` | Flags: `~/.config/helium-flags.conf`
 
 **Floorp** (Firefox fork, AUR): `omarchy-pkg-aur-add floorp-bin`
 | Distribution: `/usr/lib/floorp/distribution` | Wayland env

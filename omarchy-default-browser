@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # omarchy:summary=Set the default browser for Omarchy and XDG handlers
-# omarchy:args=[chromium|chrome|brave|brave-origin|edge|firefox|zen]
-# omarchy:examples=omarchy default browser firefox | omarchy default browser brave
+# omarchy:args=[chromium|chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf]
+# omarchy:examples=omarchy default browser firefox | omarchy default browser brave | omarchy default browser vivaldi | omarchy default browser librewolf
 
 if (($# == 0)); then
   case "$(xdg-settings get default-web-browser)" in
@@ -38,6 +38,7 @@ waterfox) desktop_id="waterfox.desktop"; name="Waterfox"; glyph="󰈹" ;;
 librewolf) desktop_id="librewolf.desktop"; name="LibreWolf"; glyph="󰈹" ;;
 *)
   echo "Usage: omarchy-default-browser <chromium|chrome|brave|brave-origin|edge|vivaldi|firefox|zen|helium|floorp|waterfox|librewolf>"
+  echo "Use omarchy-default-browser without arguments to show the current default"
   exit 1
   ;;
 esac
