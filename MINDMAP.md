@@ -19,8 +19,10 @@ mindmap
       default_browser["omarchy-default-browser<br/>12 browser detections"]
       install_browser["omarchy-install-browser<br/>11 install paths"]
       remove_browser["omarchy-remove-browser<br/>11 remove paths"]
-      menu["omarchy-menu<br/>Setup/Install/Remove menus"]
       webapp["omarchy-launch-webapp<br/>Chromium --app / Firefox --new-window / fallback"]
+    Quickshell_Menu
+      jsonc["omarchy-browser-menu.jsonc<br/>Menu extension"]
+      providers["Provider scripts<br/>Dynamic browser lists"]
 ```
 
 ## Architecture
@@ -44,6 +46,16 @@ mindmap
 │  anything else ──→ chromium --app (fallback)              │
 └──────────────────────────────────────────────────────────┘
 
+┌──────────────────────────────────────────────────────────┐
+│  Quickshell Menu Extension                               │
+│                                                          │
+│  omarchy-browser-menu.jsonc ──→ Provider scripts         │
+│  ├── setup.defaults.browser ──→ omarchy-browser-menu-provider │
+│  ├── install.browser ──→ omarchy-browser-install-provider    │
+│  └── remove.browser ──→ omarchy-browser-remove-provider      │
+└──────────────────────────────────────────────────────────┘
+```
+
 ## Shell Menu
 
 ```
@@ -65,7 +77,8 @@ SUPER+Space
 
 ```
 restore.sh:
-  cd ~/.local/share/omarchy
-  git checkout -- bin/omarchy-*
-  # No backups needed — git always has originals
+  1. Restore scripts from /usr/share/omarchy/bin/ or git repo
+  2. Remove omarchy-browser-menu.jsonc from ~/.config/omarchy/extensions/
+  3. Remove provider scripts from ~/.config/omarchy/providers/
+  4. Clean up .bak files
 ```

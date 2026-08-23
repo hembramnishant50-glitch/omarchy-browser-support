@@ -5,13 +5,13 @@
 **Extended browser integration for Omarchy Linux** — install any browser, make it the system default, and launch site-specific web apps — all from the Shell menu.
 
 ![Browsers](https://img.shields.io/badge/browsers-12-2ea043)
-![Scripts patched](https://img.shields.io/badge/scripts%20patched-5-f59e0b)
+![Scripts patched](https://img.shields.io/badge/scripts%20patched-4-f59e0b)
 ![Platform](https://img.shields.io/badge/platform-Arch%20Linux-1793d1)
 ![Window manager](https://img.shields.io/badge/wm-Hyprland-14b8a6)
 ![Display server](https://img.shields.io/badge/display-Wayland-c026d3)
 ![Shell](https://img.shields.io/badge/shell-Bash-4eaa25)
 
-**12 browsers · 5 patched scripts · one-click setup**
+**12 browsers · 4 patched scripts · Quickshell menu integration**
 
 </div>
 
@@ -20,11 +20,12 @@
 ## 🚀 Quick Start
 
 > [!TIP]
-> The installer backs up your original scripts automatically and installs all 5 patched files in one go.
+> The installer patches browser scripts and adds Shell menu entries automatically.
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
 omarchy restart shell
+omarchy menu refresh
 ```
 
 ---
@@ -48,9 +49,9 @@ omarchy restart shell
 
 <div align="center">
 
-| 🌐 **12 Browsers** | 🧩 **5 Scripts Patched** | ⚡ **One-Click Setup** |
+| 🌐 **12 Browsers** | 🧩 **4 Scripts + Menu** | ⚡ **One-Click Setup** |
 | :---: | :---: | :---: |
-| Chromium- and Firefox-based, from official repos **and** AUR | Default browser, install, remove, menus, web apps | Auto-backups + git-based restore, no manual work |
+| Chromium- and Firefox-based, from official repos **and** AUR | Default browser, install, remove, web apps + Quickshell menu | Auto-backups + package-based restore |
 
 </div>
 
@@ -97,15 +98,15 @@ Every browser gets full integration:
 
 ## 🧩 What This Pack Changes
 
-Five Omarchy scripts are patched to recognize and handle every browser:
+Four Omarchy scripts are patched to recognize and handle every browser, plus a Quickshell menu extension adds browser entries:
 
-| Script | What it does |
-|--------|--------------|
+| File | What it does |
+|------|--------------|
 | `omarchy-default-browser` | Detects and sets the default browser via `xdg-settings` and `xdg-mime` |
 | `omarchy-install-browser` | Installs a browser from official repos or AUR with managed policies |
 | `omarchy-remove-browser` | Removes a browser, cleans up config, falls back to Chromium |
-| `omarchy-menu` | Adds browser entries to the Shell menus (Setup / Install / Remove) |
 | `omarchy-launch-webapp` | Launches a URL as a site-specific window using the correct flag per engine |
+| `omarchy-browser-menu.jsonc` | Quickshell menu extension for Setup/Install/Remove browser entries |
 
 ### 🪟 Web App Behavior
 
@@ -126,7 +127,7 @@ Five Omarchy scripts are patched to recognize and handle every browser:
 ### Prerequisites
 
 - [Omarchy](https://omarchy.org/) (Arch Linux with Hyprland)
-- Omarchy Shell (default launcher, comes with Omarchy)
+- Omarchy Shell (Quickshell-based, comes with Omarchy Quattro)
 - `curl` (for one-click install)
 
 ### Option 1 — One-Click Install <sub>(recommended)</sub>
@@ -134,36 +135,12 @@ Five Omarchy scripts are patched to recognize and handle every browser:
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
 omarchy restart shell
+omarchy menu refresh
 ```
 
-This downloads all 5 patched scripts, backs up the originals, and installs them.
+This patches all 4 scripts and installs the Quickshell menu extension.
 
-### Option 2 — Manual Install
-
-```bash
-# Download patched scripts
-curl -LO https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/omarchy-default-browser
-curl -LO https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/omarchy-install-browser
-curl -LO https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/omarchy-remove-browser
-curl -LO https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/omarchy-menu
-curl -LO https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/omarchy-launch-webapp
-chmod +x omarchy-*
-
-# Back up originals (optional but recommended)
-cp ~/.local/share/omarchy/bin/omarchy-default-browser{,.bak}
-cp ~/.local/share/omarchy/bin/omarchy-install-browser{,.bak}
-cp ~/.local/share/omarchy/bin/omarchy-remove-browser{,.bak}
-cp ~/.local/share/omarchy/bin/omarchy-menu{,.bak}
-cp ~/.local/share/omarchy/bin/omarchy-launch-webapp{,.bak}
-
-# Install patched versions
-cp omarchy-* ~/.local/share/omarchy/bin/
-
-# Restart Shell
-omarchy restart shell
-```
-
-### Option 3 — Use Individual Browsers Without Patching
+### Option 2 — Use Individual Browsers Without Patching
 
 Even without this pack, you can install and use any of these browsers via
 Omarchy's existing commands. Patching only adds Shell menu entries and
@@ -236,23 +213,15 @@ SUPER+Space
 ### Option 1 — One-Click Restore
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
 omarchy restart shell
+omarchy menu refresh
 ```
 
-The restore script uses `git checkout` from the Omarchy repository at
-`~/.local/share/omarchy/` to restore the original files. No backup files
-are required — the git repo always has the pristine originals.
-
-### Option 2 — Manual Restore
+### Option 2 — Reinstall Omarchy Package
 
 ```bash
-cd ~/.local/share/omarchy
-git checkout -- bin/omarchy-default-browser \
-               bin/omarchy-install-browser \
-               bin/omarchy-remove-browser \
-               bin/omarchy-menu \
-               bin/omarchy-launch-webapp
+sudo pacman -S omarchy
 omarchy restart shell
 ```
 
@@ -273,23 +242,25 @@ omarchy default browser chromium
 
 ### Patched Scripts
 
-All files live in `~/.local/share/omarchy/bin/`:
+Installed to `/usr/bin/` (package-based) or `~/.local/share/omarchy/bin/` (git-based):
 
-| File | Size | Lines Changed |
-|------|------|---------------|
-| `omarchy-default-browser` | 2.3 KB | +10 browser entries |
-| `omarchy-install-browser` | 3.9 KB | +5 install blocks |
-| `omarchy-remove-browser` | 2.9 KB | +5 remove blocks |
-| `omarchy-menu` | 34 KB | +15 browser entries across 3 menus |
-| `omarchy-launch-webapp` | 0.9 KB | +6 browser patterns |
+| File | Purpose |
+|------|---------|
+| `omarchy-default-browser` | Detects and sets default browser (12 browsers) |
+| `omarchy-install-browser` | Installs browsers with managed policies (11 install paths) |
+| `omarchy-remove-browser` | Removes browsers with cleanup (11 remove paths) |
+| `omarchy-launch-webapp` | Launches web apps with correct flags per engine |
 
-### Unchanged Files
+### Quickshell Menu Extension
 
-These scripts already worked correctly with all browser types:
+Installed to `~/.config/omarchy/`:
 
-| File | Reason |
-|------|--------|
-| `omarchy-launch-browser` | Detects the private flag via `--help` (works for Chrome, Firefox, and all forks) |
+| File | Purpose |
+|------|---------|
+| `extensions/omarchy-browser-menu.jsonc` | Menu entries for Setup/Install/Remove |
+| `providers/omarchy-browser-menu-provider` | Dynamic browser list provider |
+| `providers/omarchy-browser-install-provider` | Install browser menu provider |
+| `providers/omarchy-browser-remove-provider` | Remove browser menu provider |
 
 ---
 
@@ -321,13 +292,13 @@ These scripts already worked correctly with all browser types:
 
 ## 📝 Notes
 
-- **💾 Persistence:** Patched files live in `~/.local/share/omarchy/bin/`, which
-  is managed by the Omarchy git repository. Running `omarchy update` may
+- **📦 Persistence:** Patched files live in `/usr/bin/` (package-based) or
+  `~/.local/share/omarchy/bin/` (git-based). Running `omarchy update` may
   overwrite them. Simply re-run `install.sh` after updates.
 
-- **♻️ Restore:** The `restore.sh` script uses `git checkout` from the Omarchy
-  repo — no separate backup files are needed. Original files are always one
-  command away. Run `omarchy restart shell` after restoring.
+- **♻️ Restore:** Use `restore.sh` or `sudo pacman -S omarchy` to restore
+  originals. The restore script handles both git-based and package-based
+  installations.
 
 - **🔑 Default browser:** Omarchy ships with Chromium as the system default.
   This pack does not change that. Switch at any time with
@@ -340,7 +311,8 @@ These scripts already worked correctly with all browser types:
   `~/.config/environment.d/omarchy-firefox-wayland.conf` at install time.
 
 - **🔄 Shell Integration:** This pack is designed for Omarchy Quattro with the
-  Quickshell-based Omarchy Shell. Menus use `omarchy menu` commands.
+  Quickshell-based Omarchy Shell. Browser menus use JSONC extensions and
+  provider scripts instead of the old bash menu system.
 
 ---
 
@@ -349,7 +321,7 @@ These scripts already worked correctly with all browser types:
 | Project | Link |
 |---------|------|
 | Omarchy | [omarchy.org](https://omarchy.org/) |
-| Helium Browser | [heliumbrowser.com](https://heliumbrowser.com/) |
+| Helium Browser | [helium.computer](https://helium.computer/) |
 | Vivaldi Browser | [vivaldi.com](https://vivaldi.com/) |
 | Floorp Browser | [floorp.app](https://floorp.app/) |
 | Waterfox Browser | [waterfox.net](https://www.waterfox.net/) |
@@ -363,6 +335,6 @@ These scripts already worked correctly with all browser types:
 
 <div align="center">
 
-Made for **Omarchy** · Arch Linux · Hyprland · Wayland
+Made for **Omarchy Quattro** · Arch Linux · Hyprland · Wayland · Quickshell
 
 </div>

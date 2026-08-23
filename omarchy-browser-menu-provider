@@ -1,0 +1,49 @@
+#!/bin/bash
+# omarchy-browser-menu-provider — Returns browser menu rows for Quickshell
+# Called by omarchy-menu.jsonc provider field
+
+browser_desktop_exists() {
+  [[ -f ~/.local/share/applications/$1 || -f ~/.nix-profile/share/applications/$1 || -f /usr/share/applications/$1 ]]
+}
+
+browser_entry() {
+  local glyph="$1" label="$2" desktop="$3"
+  if browser_desktop_exists "$desktop"; then
+    printf '{"icon":"%s","label":"%s","action":"omarchy-default-browser %s"}\n' "$glyph" "$label" "$label"
+  fi
+}
+
+# Build JSON array of available browsers
+echo "["
+first=true
+
+for entry in \
+  "  Chromium:chromium:chromium" \
+  "󰊯  Chrome:chrome:google-chrome" \
+  "󰖟  Brave:brave:brave-browser" \
+  "󰖟  Brave Origin:brave-origin:brave-origin-beta" \
+  "󰇩  Edge:edge:microsoft-edge" \
+  "  Vivaldi:vivaldi:vivaldi-stable" \
+  "󰀘  Helium:helium:helium" \
+  "󰈹  Firefox:firefox:firefox" \
+  "󰰷  Zen:zen:zen" \
+  "󰈹  Floorp:floorp:floorp" \
+  "󰈹  Waterfox:waterfox:waterfox" \
+  "󰈹  LibreWolf:librewolf:librewolf"
+do
+  IFS=':' read -r glyph label desktop <<< "$entry"
+  if browser_desktop_exists "$desktop"; then
+    $first || echo ","
+    first=false
+    # Get current default
+    current=$(xdg-settings get default-web-browser 2>/dev/null)
+    if [[ "$current" == "$desktop" ]]; then
+      printf '  {"icon":"%s","label":"%s ✓","action":"omarchy-default-browser %s"}' "$glyph" "$label" "$label"
+    else
+      printf '  {"icon":"%s","label":"%s","action":"omarchy-default-browser %s"}' "$glyph" "$label" "$label"
+    fi
+  fi
+done
+
+echo ""
+echo "]"

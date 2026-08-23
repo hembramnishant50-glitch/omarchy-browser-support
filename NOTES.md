@@ -2,9 +2,9 @@
 
 ## Overview
 
-Patches 5 Omarchy scripts under `~/.local/share/omarchy/bin/` to add support for
-**Vivaldi, Helium, Floorp, Waterfox, and LibreWolf** browsers, plus improved
-web app handling for Firefox and Zen.
+Patches 4 Omarchy scripts to add support for **Vivaldi, Helium, Floorp,
+Waterfox, and LibreWolf** browsers, plus improved web app handling for
+Firefox and Zen. Installs a Quickshell menu extension for browser entries.
 
 Total of **12 browsers** supported across all menus and commands.
 
@@ -24,7 +24,7 @@ Detects and sets the default browser via `xdg-settings` + `xdg-mime`.
 - `librewolf.desktop` → `"librewolf"`
 
 **Added lines (set):**
-- `vivaldi` → `vivaldi-stable.desktop` / `"Vivaldi"` / ``
+- `vivaldi` → `vivaldi-stable.desktop` / `"Vivaldi"` / ``
 - `helium` → `helium.desktop` / `"Helium"` / `󰀘`
 - `floorp` → `floorp.desktop` / `"Floorp"` / `󰈹`
 - `waterfox` → `waterfox.desktop` / `"Waterfox"` / `󰈹`
@@ -62,15 +62,30 @@ Each new browser:
 | `firefox*`, `zen*`, `floorp*`, `waterfox*`, `librewolf*` | `--new-window` | ❌ Chromium fallback | ✅ Uses native browser |
 | anything else | Chromium `--app` | ✅ Fallback | ✅ Fallback |
 
-### `omarchy-menu`
+---
 
-Three functions updated with all 12 browsers:
+## Quickshell Menu Extension
 
-| Function | Browsers listed |
-|----------|----------------|
-| `show_setup_default_browser_menu` | All 12 (auto-detected via desktop file) |
-| `show_install_browser_menu` | All 12 install options |
-| `show_remove_browser_menu` | All 12 remove options |
+### `omarchy-browser-menu.jsonc`
+
+JSONC menu extension installed to `~/.config/omarchy/extensions/`. Defines
+three menu routes:
+
+| Route | Purpose |
+|-------|---------|
+| `setup.defaults.browser` | Default browser selection (dynamic, shows installed browsers) |
+| `install.browser` | Install a browser (all 12 options) |
+| `remove.browser` | Remove a browser (all 12 options) |
+
+### Provider Scripts
+
+Installed to `~/.config/omarchy/providers/`:
+
+| Script | Returns |
+|--------|---------|
+| `omarchy-browser-menu-provider` | JSON array of installed browsers with ✓ for current default |
+| `omarchy-browser-install-provider` | JSON array of all installable browsers |
+| `omarchy-browser-remove-provider` | JSON array of all removable browsers |
 
 ---
 
@@ -93,7 +108,26 @@ Three functions updated with all 12 browsers:
 
 ---
 
+## Installation Paths
+
+### Package-Based (Omarchy Quattro)
+
+Scripts installed to `/usr/bin/` (requires sudo).
+Menu extension installed to `~/.config/omarchy/`.
+
+### Git-Based (Legacy)
+
+Scripts installed to `~/.local/share/omarchy/bin/`.
+Menu extension installed to `~/.config/omarchy/`.
+
+---
+
 ## Restore
 
-The `restore.sh` script uses `git checkout` from the Omarchy repo at
-`~/.local/share/omarchy/` — no backup files required.
+The `restore.sh` script:
+1. Restores scripts from `/usr/share/omarchy/bin/` or git repo
+2. Removes browser menu extension from `~/.config/omarchy/extensions/`
+3. Removes provider scripts from `~/.config/omarchy/providers/`
+4. Cleans up `.bak` files
+
+Alternatively, `sudo pacman -S omarchy` reinstalls all original scripts.

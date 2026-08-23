@@ -1,0 +1,23 @@
+{
+  // Omarchy Browser Support Pack — Quickshell Menu Extension
+  // Adds browser entries to Setup/Install/Remove menus.
+  // Install to: ~/.config/omarchy/extensions/omarchy-browser-menu.jsonc
+
+  "setup.defaults.browser": {
+    "icon": "",
+    "label": "Browser",
+    "provider": "omarchy-browser-menu-provider"
+  },
+
+  "install.browser": {
+    "icon": "",
+    "label": "Browser",
+    "provider": "omarchy-browser-install-provider"
+  },
+
+  "remove.browser": {
+    "icon": "",
+    "label": "Browser",
+    "provider": "omarchy-browser-remove-provider"
+  }
+}

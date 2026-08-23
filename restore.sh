@@ -1,52 +1,89 @@
 #!/bin/bash
-# omarchy-browser-support — Restore originals from omarchy git repo
+# omarchy-browser-support — Restore originals
 # Usage: bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
 
-OMARCHY_DIR="$HOME/.local/share/omarchy"
-FILES=(
+SCRIPTS=(
   omarchy-default-browser
   omarchy-install-browser
   omarchy-remove-browser
-  omarchy-menu
   omarchy-launch-webapp
 )
 
+MENU_DIR="$HOME/.config/omarchy/extensions"
+PROVIDER_DIR="$HOME/.config/omarchy/providers"
+
 set -e
 
-echo "╔══════════════════════════════════════════╗"
-echo "║  Omarchy Browser Support — Restore       ║"
-echo "╚══════════════════════════════════════════╝"
+echo "╔══════════════════════════════════════════════╗"
+echo "║  Omarchy Browser Support — Restore           ║"
+echo "╚══════════════════════════════════════════════╝"
 echo ""
 
-if [[ ! -d "$OMARCHY_DIR/.git" ]]; then
-  echo "ERROR: Omarchy git repo not found at $OMARCHY_DIR"
-  echo "Cannot restore originals automatically."
+# Detect script install location
+if [[ -L /usr/share/omarchy/bin/omarchy-default-browser ]] || [[ -f /usr/bin/omarchy-default-browser ]]; then
+  SCRIPT_DIR="/usr/bin"
+elif [[ -d "$HOME/.local/share/omarchy/bin" ]]; then
+  SCRIPT_DIR="$HOME/.local/share/omarchy/bin"
+else
+  echo "ERROR: Cannot detect Omarchy installation."
   exit 1
 fi
 
-echo "==> Restoring original files from omarchy git repo..."
-for file in "${FILES[@]}"; do
-  if git -C "$OMARCHY_DIR" show HEAD:"bin/$file" >/dev/null 2>&1; then
-    git -C "$OMARCHY_DIR" checkout -- "bin/$file"
-    echo "    Restored $file"
-  else
-    echo "    WARNING: $file not found in git — skipping"
-  fi
+echo "  Scripts:   $SCRIPT_DIR"
+echo "  Menu ext:  $MENU_DIR"
+echo "  Providers: $PROVIDER_DIR"
+echo ""
+
+# Restore scripts
+if [[ -d "$HOME/.local/share/omarchy/.git" ]]; then
+  echo "==> Restoring scripts from git repo..."
+  for file in "${SCRIPTS[@]}"; do
+    if git -C "$HOME/.local/share/omarchy" show HEAD:"bin/$file" >/dev/null 2>&1; then
+      git -C "$HOME/.local/share/omarchy" checkout -- "bin/$file"
+      echo "    Restored $file"
+    fi
+  done
+else
+  echo "==> Package-based installation detected."
+  for file in "${SCRIPTS[@]}"; do
+    if [[ -f "/usr/share/omarchy/bin/$file" ]]; then
+      if [[ "$SCRIPT_DIR" == "/usr/bin" ]]; then
+        sudo cp "/usr/share/omarchy/bin/$file" "$SCRIPT_DIR/$file"
+      else
+        cp "/usr/share/omarchy/bin/$file" "$SCRIPT_DIR/$file"
+      fi
+      echo "    Restored $file"
+    else
+      echo "    WARNING: /usr/share/omarchy/bin/$file not found — reinstall package"
+    fi
+  done
+fi
+
+# Remove browser menu extension
+echo ""
+echo "==> Removing browser menu extension..."
+rm -f "$MENU_DIR/omarchy-browser-menu.jsonc"
+echo "    Removed omarchy-browser-menu.jsonc"
+
+# Remove provider scripts
+for provider in omarchy-browser-menu-provider omarchy-browser-install-provider omarchy-browser-remove-provider; do
+  rm -f "$PROVIDER_DIR/$provider"
+  echo "    Removed $provider"
 done
 
-# Also clean up any leftover .bak files from previous installs
+# Clean up backup files
 echo ""
 echo "==> Cleaning up backup files..."
-rm -f "$OMARCHY_DIR/bin/omarchy-default-browser.bak."*
-rm -f "$OMARCHY_DIR/bin/omarchy-install-browser.bak."*
-rm -f "$OMARCHY_DIR/bin/omarchy-remove-browser.bak."*
-rm -f "$OMARCHY_DIR/bin/omarchy-menu.bak."*
-rm -f "$OMARCHY_DIR/bin/omarchy-launch-webapp.bak."*
-echo "    Removed backup files"
+for file in "${SCRIPTS[@]}"; do
+  rm -f "$SCRIPT_DIR/$file.bak."* 2>/dev/null
+done
+rm -f "$MENU_DIR/omarchy-browser-menu.jsonc.bak."* 2>/dev/null
+echo "    Done"
 
 echo ""
-echo "╔══════════════════════════════════════════╗"
-echo "║   Done! Restart Shell:                   ║"
-echo "║     omarchy restart shell                ║"
-echo "╚══════════════════════════════════════════╝"
+echo "╔══════════════════════════════════════════════╗"
+echo "║   Done! Restart Shell:                       ║"
+echo "║     omarchy restart shell                    ║"
+echo "║     omarchy menu refresh                     ║"
+echo "╚══════════════════════════════════════════════╝"
 echo ""
