@@ -1,0 +1,66 @@
+#!/bin/bash
+# Omarchy Browser Support Pack — Browser Remover Selector
+# Shows a menu to pick which browser to remove.
+# Usage: omarchy-browser-select-remove
+
+echo "╔══════════════════════════════════════════════╗"
+echo "║   Remove Browser                             ║"
+echo "╚══════════════════════════════════════════════╝"
+echo ""
+
+declare -A BROWSERS
+BROWSERS=(
+  [1]="vivaldi|Vivaldi||vivaldi"
+  [2]="helium|Helium|󰀘|helium-browser-bin"
+  [3]="floorp|Floorp|󰈹|floorp-bin"
+  [4]="waterfox|Waterfox|󰈹|waterfox-bin"
+  [5]="librewolf|LibreWolf|󰈹|librewolf-bin"
+)
+
+options=()
+
+for i in 1 2 3 4 5; do
+  IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$i]}"
+  if omarchy-pkg-present "$pkg" 2>/dev/null; then
+    options+=("$i")
+  fi
+done
+
+if [[ ${#options[@]} -eq 0 ]]; then
+  echo "  None of the extra browsers are installed."
+  echo ""
+  read -p "  Press Enter to close..."
+  exit 0
+fi
+
+echo "  Installed browsers you can remove:"
+echo ""
+
+for idx in "${options[@]}"; do
+  IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$idx]}"
+  echo "  [$idx] $icon $name"
+done
+
+echo ""
+read -p "  Enter number (1-5): " choice
+
+if [[ -z "${BROWSERS[$choice]}" ]]; then
+  echo "  Invalid choice"
+  exit 1
+fi
+
+IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$choice]}"
+
+# Check if installed
+if ! omarchy-pkg-present "$pkg" 2>/dev/null; then
+  echo "  $name is not installed!"
+  read -p "  Press Enter to close..."
+  exit 0
+fi
+
+echo ""
+echo "  Removing $name..."
+echo ""
+omarchy-remove-browser "$cmd"
+echo ""
+read -p "  Press Enter to close..."

@@ -1,0 +1,70 @@
+#!/bin/bash
+# Omarchy Browser Support Pack — Browser Installer Selector
+# Shows a menu to pick which browser to install.
+# Usage: omarchy-browser-select
+
+echo "╔══════════════════════════════════════════════╗"
+echo "║   Install Browser                            ║"
+echo "╚══════════════════════════════════════════════╝"
+echo ""
+
+# Build list of available (not installed) browsers
+declare -A BROWSERS
+BROWSERS=(
+  [1]="vivaldi|Vivaldi||vivaldi"
+  [2]="helium|Helium|󰀘|helium-browser-bin"
+  [3]="floorp|Floorp|󰈹|floorp-bin"
+  [4]="waterfox|Waterfox|󰈹|waterfox-bin"
+  [5]="librewolf|LibreWolf|󰈹|librewolf-bin"
+)
+
+options=()
+installed=()
+
+for i in 1 2 3 4 5; do
+  IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$i]}"
+  if omarchy-pkg-present "$pkg" 2>/dev/null; then
+    installed+=("$i")
+  else
+    options+=("$i")
+  fi
+done
+
+if [[ ${#options[@]} -eq 0 ]]; then
+  echo "  All extra browsers are already installed!"
+  echo ""
+  read -p "  Press Enter to close..."
+  exit 0
+fi
+
+echo "  Available browsers to install:"
+echo ""
+
+for idx in "${options[@]}"; do
+  IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$idx]}"
+  echo "  [$idx] $icon $name"
+done
+
+echo ""
+read -p "  Enter number (1-5): " choice
+
+if [[ -z "${BROWSERS[$choice]}" ]]; then
+  echo "  Invalid choice"
+  exit 1
+fi
+
+IFS='|' read -r cmd name icon pkg <<< "${BROWSERS[$choice]}"
+
+# Check if already installed
+if omarchy-pkg-present "$pkg" 2>/dev/null; then
+  echo "  $name is already installed!"
+  read -p "  Press Enter to close..."
+  exit 0
+fi
+
+echo ""
+echo "  Installing $name..."
+echo ""
+omarchy-install-browser "$cmd"
+echo ""
+read -p "  Press Enter to close..."
