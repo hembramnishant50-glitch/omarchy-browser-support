@@ -158,12 +158,6 @@ MIT License — See [LICENSE](LICENSE) for details
 
 ---
 
-## 🙏 Credits
-
-Built for [Omarchy](https://omarchy.org/) by [Nishant Hembram](https://github.com/hembramnishant50-glitch)
-
----
-
 <div align="center">
 
 [⬆ Back to Top](#omarchy-browser-support-pack) • [🐛 Report Bug](https://github.com/hembramnishant50-glitch/omarchy-browser-support/issues) • [✨ Request Feature](https://github.com/hembramnishant50-glitch/omarchy-browser-support/issues)
