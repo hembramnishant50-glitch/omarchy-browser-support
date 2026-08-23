@@ -1,166 +1,171 @@
 # Omarchy Browser Support Pack
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Shell: Bash](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
-[![Platform: Arch Linux](https://img.shields.io/badge/Platform-Arch%20Linux-blue.svg)](https://archlinux.org/)
-[![Desktop: Omarchy Quattro](https://img.shields.io/badge/Desktop-Omarchy%20Quattro-purple.svg)](https://omarchy.org/)
+![Omarchy](https://img.shields.io/badge/Omarchy-Quattro-purple?style=for-the-badge&logo=archlinux)
+![Shell](https://img.shields.io/badge/Shell-Quickshell-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-Adds **Vivaldi, Helium, Floorp, Waterfox, and LibreWolf** to the [Omarchy](https://omarchy.org/) desktop menu — with one-click install, set-as-default, and remove support.
+> **Adds 5 privacy-focused browsers to Omarchy Quattro menu with one-click install, set-as-default, and remove support.**
 
-> **Stock Omarchy** already ships scripts that support all 12 browsers. This pack only adds the **missing menu entries** via a Quickshell JSONC extension. No script patching required.
-
----
-
-## Features
-
-- **Menu Integration** — 5 extra browsers appear in Setup, Install, and Remove menus
-- **Smart Visibility** — entries show/hide based on whether the browser is installed
-- **One-Click Install** — click a browser in the menu to install it
-- **Browser Picker** — "Install Browser" opens a selector to pick one
-- **Set as Default** — select any installed browser as your default via Setup > Defaults > Browser
-- **Clean Uninstall** — one command to remove everything
+| Browser | Icon | Source | Description |
+|---------|------|--------|-------------|
+| **Vivaldi** | 󰀙 | Official Repo | Highly customizable, built-in ad blocker, mail client |
+| **Helium** | 󰀘 | AUR | Lightweight Chromium fork, minimal UI |
+| **Floorp** | 󰈹 | AUR | Firefox-based, Japanese development, privacy-focused |
+| **Waterfox** | 󰈹 | AUR | Firefox fork, no telemetry, legacy extension support |
+| **LibreWolf** | 󰈹 | AUR | Firefox fork, hardened privacy & security out of the box |
 
 ---
 
-## Supported Browsers
+## 🚀 Quick Install
 
-| Browser | Source | Package | Command |
-|---------|--------|---------|---------|
-| Vivaldi | Official repo | `vivaldi` | `vivaldi-stable` |
-| Helium | AUR | `helium-browser-bin` | `helium-browser` |
-| Floorp | AUR | `floorp-bin` | `floorp` |
-| Waterfox | AUR | `waterfox-bin` | `waterfox` |
-| LibreWolf | AUR | `librewolf-bin` | `librewolf` |
+### One-liner (curl)
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
+```
 
----
-
-## Install
-
+### From cloned repo
 ```bash
 git clone https://github.com/hembramnishant50-glitch/omarchy-browser-support.git
 cd omarchy-browser-support
 bash install.sh
 ```
 
-Or one-liner:
+---
 
-```bash
-bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
-```
+## 📋 What Gets Installed
 
-### What it does
-
-1. Installs `omarchy-browser-menu.jsonc` to `~/.config/omarchy/extensions/`
-2. Installs `omarchy-browser-select` and `omarchy-browser-select-remove` to `~/.local/bin/`
-3. Runs `omarchy menu refresh`
+| Component | Location | Description |
+|-----------|----------|-------------|
+| Menu Extension | `~/.config/omarchy/extensions/omarchy-menu.jsonc` | Adds browsers to Setup/Install/Remove menus |
+| Browser Selector | `~/.local/bin/omarchy-browser-select` | Interactive picker to install one browser |
+| Browser Remover | `~/.local/bin/omarchy-browser-select-remove` | Interactive picker to remove one browser |
+| Individual Installers | `~/.local/bin/install-<browser>` | Install specific browser directly |
+| Individual Removers | `~/.local/bin/remove-<browser>` | Remove specific browser directly |
 
 ---
 
-## Uninstall
+## 🎯 Menu Integration
 
-```bash
-cd omarchy-browser-support
-bash restore.sh
+After install, open the Omarchy menu (`Super` key) and navigate:
+
+```
+Setup ▸ Defaults ▸ Browser
+    ├── 󰀙 Vivaldi
+    ├── 󰀘 Helium
+    ├── 󰈹 Floorp
+    ├── 󰈹 Waterfox
+    └── 󰈹 LibreWolf
+    (only shows if browser is installed)
+
+Install ▸ Browser
+    ├── 󰀙 Vivaldi
+    ├── 󰀘 Helium
+    ├── 󰈹 Floorp
+    ├── 󰈹 Waterfox
+    ├── 󰈹 LibreWolf
+    (only shows if NOT installed)
+    └── 󰉉 Install Browser  (interactive picker)
+
+Remove ▸ Browser
+    ├── 󰀙 Vivaldi
+    ├── 󰀘 Helium
+    ├── 󰈹 Floorp
+    ├── 󰈹 Waterfox
+    ├── 󰈹 LibreWolf
+    (only shows if installed)
+    └── 󰭌 Remove Browser  (interactive picker)
 ```
 
-Or one-liner:
+---
+
+## ⌨️ Direct Commands
+
+### Install a specific browser
+```bash
+install-helium        # Install Helium
+install-vivaldi       # Install Vivaldi
+install-floorp        # Install Floorp
+install-waterfox      # Install Waterfox
+install-librewolf     # Install LibreWolf
+```
+
+### Remove a specific browser
+```bash
+remove-helium         # Remove Helium
+remove-vivaldi        # Remove Vivaldi
+remove-floorp         # Remove Floorp
+remove-waterfox       # Remove Waterfox
+remove-librewolf      # Remove LibreWolf
+```
+
+### Interactive pickers
+```bash
+omarchy-browser-select          # Pick & install one browser
+omarchy-browser-select-remove   # Pick & remove one browser
+```
+
+---
+
+## 🗑️ Uninstall
 
 ```bash
+bash restore.sh
+# or
 bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
 ```
 
-### Manual Uninstall
+---
 
-```bash
-rm ~/.config/omarchy/extensions/omarchy-browser-menu.jsonc
-rm ~/.local/bin/omarchy-browser-select ~/.local/bin/omarchy-browser-select-remove
-omarchy menu refresh
-```
+## 🔧 How It Works
+
+1. **No script patching needed** — Stock Omarchy scripts already support all 12 browsers
+2. **JSONC Menu Extension** — Uses Quickshell's dotted-ID format to merge into existing menus
+3. **Smart Visibility** — Entries auto-show/hide based on package installation status
+4. **Native Integration** — Uses `omarchy-install-browser` / `omarchy-remove-browser` / `omarchy-default-browser`
 
 ---
 
-## Menu Entries
+## 📦 Supported Browsers (12 Total)
 
-### Install > Browser
-
-| Entry | Action |
-|-------|--------|
-| **Install Browser** | Opens a picker to select and install a browser |
-| Vivaldi | Installs Vivaldi (hidden if already installed) |
-| Helium | Installs Helium (hidden if already installed) |
-| Floorp | Installs Floorp (hidden if already installed) |
-| Waterfox | Installs Waterfox (hidden if already installed) |
-| LibreWolf | Installs LibreWolf (hidden if already installed) |
-
-### Setup > Defaults > Browser
-
-| Entry | Action |
-|-------|--------|
-| Vivaldi | Sets Vivaldi as default (shows only if installed) |
-| Helium | Sets Helium as default (shows only if installed) |
-| Floorp | Sets Floorp as default (shows only if installed) |
-| Waterfox | Sets Waterfox as default (shows only if installed) |
-| LibreWolf | Sets LibreWolf as default (shows only if installed) |
-
-### Remove > Browser
-
-| Entry | Action |
-|-------|--------|
-| **Remove Browser** | Opens a picker to select and remove a browser |
-| Vivaldi | Removes Vivaldi (shown only if installed) |
-| Helium | Removes Helium (shown only if installed) |
-| Floorp | Removes Floorp (shown only if installed) |
-| Waterfox | Removes Waterfox (shown only if installed) |
-| LibreWolf | Removes LibreWolf (shown only if installed) |
+| Browser | Package | Status |
+|---------|---------|--------|
+| Chromium | `chromium` | ✅ Stock |
+| Chrome | `google-chrome` (AUR) | ✅ Stock |
+| Brave | `brave-bin` (AUR) | ✅ Stock |
+| Brave Origin | `brave-origin-bin` (AUR) | ✅ Stock |
+| Edge | `microsoft-edge-stable-bin` (AUR) | ✅ Stock |
+| **Vivaldi** | `vivaldi` | ✅ **This Pack** |
+| Firefox | `firefox` | ✅ Stock |
+| Zen | `zen-browser-bin` (AUR) | ✅ Stock |
+| **Helium** | `helium-browser-bin` (AUR) | ✅ **This Pack** |
+| **Floorp** | `floorp-bin` (AUR) | ✅ **This Pack** |
+| **Waterfox** | `waterfox-bin` (AUR) | ✅ **This Pack** |
+| **LibreWolf** | `librewolf-bin` (AUR) | ✅ **This Pack** |
 
 ---
 
-## How It Works
+## 🛠️ Requirements
 
-The pack uses Quickshell's **dotted-ID JSONC extension** format to merge entries into the stock Omarchy menu:
-
-```
-omarchy-browser-menu.jsonc
-├── setup.default.browser.*    →  adds to Setup > Defaults > Browser
-├── install.browser.*          →  adds to Install > Browser
-└── remove.browser.*           →  adds to Remove > Browser
-```
-
-Each entry defines:
-- `when` — shell condition to show/hide the entry
-- `checked` — shell condition for a checkmark (defaults only)
-- `action` — command to run on click
-
-The selector scripts (`omarchy-browser-select`, `omarchy-browser-select-remove`) present a numbered menu in a floating terminal to pick which browser to install or remove.
+- **Omarchy Quattro** (Quickshell-based)
+- **Arch Linux** with `yay` or `paru` for AUR packages
+- `omarchy` command available in PATH
 
 ---
 
-## Compatibility
+## 📄 License
 
-| Requirement | Status |
-|-------------|--------|
-| Omarchy Quattro (Quickshell) | Supported |
-| Omarchy Classic (Walker) | Not supported |
-| Package-based install | Supported |
-| Git-based install | Supported |
-| Arch Linux | Required |
+MIT License — See [LICENSE](LICENSE) for details
 
 ---
 
-## File Structure
+## 🙏 Credits
 
-```
-omarchy-browser-support/
-├── install.sh                    # Installer script
-├── restore.sh                    # Uninstaller script
-├── omarchy-browser-menu.jsonc    # Quickshell menu extension
-├── omarchy-browser-select        # Interactive browser installer picker
-├── omarchy-browser-select-remove # Interactive browser remover picker
-└── README.md                     # This file
-```
+Built for [Omarchy](https://omarchy.org/) by [Nishant Hembram](https://github.com/hembramnishant50-glitch)
 
 ---
 
-## License
+<div align="center">
 
-MIT
+[⬆ Back to Top](#omarchy-browser-support-pack) • [🐛 Report Bug](https://github.com/hembramnishant50-glitch/omarchy-browser-support/issues) • [✨ Request Feature](https://github.com/hembramnishant50-glitch/omarchy-browser-support/issues)
+
+</div>
