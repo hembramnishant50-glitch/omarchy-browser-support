@@ -106,7 +106,7 @@ Four Omarchy scripts are patched to recognize and handle every browser, plus a Q
 | `omarchy-install-browser` | Installs a browser from official repos or AUR with managed policies |
 | `omarchy-remove-browser` | Removes a browser, cleans up config, falls back to Chromium |
 | `omarchy-launch-webapp` | Launches a URL as a site-specific window using the correct flag per engine |
-| `omarchy-browser-menu.jsonc` | Quickshell menu extension for Setup/Install/Remove browser entries |
+| `omarchy-browser-menu.jsonc` | Quickshell menu extension adding Vivaldi/Helium/Floorp/Waterfox/LibreWolf |
 
 ### 🪟 Web App Behavior
 
@@ -253,14 +253,11 @@ Installed to `/usr/bin/` (package-based) or `~/.local/share/omarchy/bin/` (git-b
 
 ### Quickshell Menu Extension
 
-Installed to `~/.config/omarchy/`:
+Installed to `~/.config/omarchy/extensions/`:
 
 | File | Purpose |
 |------|---------|
-| `extensions/omarchy-browser-menu.jsonc` | Menu entries for Setup/Install/Remove |
-| `providers/omarchy-browser-menu-provider` | Dynamic browser list provider |
-| `providers/omarchy-browser-install-provider` | Install browser menu provider |
-| `providers/omarchy-browser-remove-provider` | Remove browser menu provider |
+| `omarchy-browser-menu.jsonc` | Adds Vivaldi, Helium, Floorp, Waterfox, LibreWolf to Setup/Install/Remove menus |
 
 ---
 

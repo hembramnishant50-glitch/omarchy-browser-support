@@ -1,23 +1,26 @@
 {
   // Omarchy Browser Support Pack — Quickshell Menu Extension
-  // Adds browser entries to Setup/Install/Remove menus.
+  // Adds Vivaldi, Helium, Floorp, Waterfox, LibreWolf to Setup/Install/Remove menus.
   // Install to: ~/.config/omarchy/extensions/omarchy-browser-menu.jsonc
 
-  "setup.defaults.browser": {
-    "icon": "",
-    "label": "Browser",
-    "provider": "omarchy-browser-menu-provider"
-  },
+  // Default Browser — add missing browsers
+  "setup.default.browser.vivaldi": {"icon":"","label":"Vivaldi","when":"omarchy-cmd-present vivaldi-stable","checked":"[[ \"$(omarchy-default-browser)\" == \"vivaldi\" ]]","action":"omarchy-default-browser vivaldi"},
+  "setup.default.browser.helium": {"icon":"󰀘","label":"Helium","when":"omarchy-cmd-present helium-browser","checked":"[[ \"$(omarchy-default-browser)\" == \"helium\" ]]","action":"omarchy-default-browser helium"},
+  "setup.default.browser.floorp": {"icon":"󰈹","label":"Floorp","when":"omarchy-cmd-present floorp","checked":"[[ \"$(omarchy-default-browser)\" == \"floorp\" ]]","action":"omarchy-default-browser floorp"},
+  "setup.default.browser.waterfox": {"icon":"󰈹","label":"Waterfox","when":"omarchy-cmd-present waterfox","checked":"[[ \"$(omarchy-default-browser)\" == \"waterfox\" ]]","action":"omarchy-default-browser waterfox"},
+  "setup.default.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","when":"omarchy-cmd-present librewolf","checked":"[[ \"$(omarchy-default-browser)\" == \"librewolf\" ]]","action":"omarchy-default-browser librewolf"},
 
-  "install.browser": {
-    "icon": "",
-    "label": "Browser",
-    "provider": "omarchy-browser-install-provider"
-  },
+  // Install Browser — add missing browsers
+  "install.browser.vivaldi": {"icon":"","label":"Vivaldi","action":"omarchy-install-browser vivaldi"},
+  "install.browser.helium": {"icon":"󰀘","label":"Helium","action":"omarchy-install-browser helium"},
+  "install.browser.floorp": {"icon":"󰈹","label":"Floorp","action":"omarchy-install-browser floorp"},
+  "install.browser.waterfox": {"icon":"󰈹","label":"Waterfox","action":"omarchy-install-browser waterfox"},
+  "install.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","action":"omarchy-install-browser librewolf"},
 
-  "remove.browser": {
-    "icon": "",
-    "label": "Browser",
-    "provider": "omarchy-browser-remove-provider"
-  }
+  // Remove Browser — add missing browsers
+  "remove.browser.vivaldi": {"icon":"","label":"Vivaldi","action":"omarchy-remove-browser vivaldi"},
+  "remove.browser.helium": {"icon":"󰀘","label":"Helium","action":"omarchy-remove-browser helium"},
+  "remove.browser.floorp": {"icon":"󰈹","label":"Floorp","action":"omarchy-remove-browser floorp"},
+  "remove.browser.waterfox": {"icon":"󰈹","label":"Waterfox","action":"omarchy-remove-browser waterfox"},
+  "remove.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","action":"omarchy-remove-browser librewolf"}
 }

@@ -68,24 +68,21 @@ Each new browser:
 
 ### `omarchy-browser-menu.jsonc`
 
-JSONC menu extension installed to `~/.config/omarchy/extensions/`. Defines
-three menu routes:
+JSONC menu extension installed to `~/.config/omarchy/extensions/`. Uses the
+dotted-ID convention to add entries to existing menus:
 
-| Route | Purpose |
+| Entry | Purpose |
 |-------|---------|
-| `setup.defaults.browser` | Default browser selection (dynamic, shows installed browsers) |
-| `install.browser` | Install a browser (all 12 options) |
-| `remove.browser` | Remove a browser (all 12 options) |
+| `setup.default.browser.vivaldi` | Vivaldi default browser option (with `when`/`checked`) |
+| `setup.default.browser.helium` | Helium default browser option |
+| `setup.default.browser.floorp` | Floorp default browser option |
+| `setup.default.browser.waterfox` | Waterfox default browser option |
+| `setup.default.browser.librewolf` | LibreWolf default browser option |
+| `install.browser.*` | Install browser entries |
+| `remove.browser.*` | Remove browser entries |
 
-### Provider Scripts
-
-Installed to `~/.config/omarchy/providers/`:
-
-| Script | Returns |
-|--------|---------|
-| `omarchy-browser-menu-provider` | JSON array of installed browsers with ✓ for current default |
-| `omarchy-browser-install-provider` | JSON array of all installable browsers |
-| `omarchy-browser-remove-provider` | JSON array of all removable browsers |
+Each entry uses `when` to check if the browser command exists, `checked` to
+show the current default, and `action` to run the appropriate command.
 
 ---
 
@@ -127,7 +124,6 @@ Menu extension installed to `~/.config/omarchy/`.
 The `restore.sh` script:
 1. Restores scripts from `/usr/share/omarchy/bin/` or git repo
 2. Removes browser menu extension from `~/.config/omarchy/extensions/`
-3. Removes provider scripts from `~/.config/omarchy/providers/`
-4. Cleans up `.bak` files
+3. Cleans up `.bak` files
 
 Alternatively, `sudo pacman -S omarchy` reinstalls all original scripts.

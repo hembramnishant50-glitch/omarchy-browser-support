@@ -13,13 +13,8 @@ SCRIPTS=(
   omarchy-launch-webapp
 )
 
-# Quickshell menu extension files
-MENU_FILES=(
-  omarchy-browser-menu.jsonc
-  omarchy-browser-menu-provider
-  omarchy-browser-install-provider
-  omarchy-browser-remove-provider
-)
+# Quickshell menu extension file
+MENU_FILE="omarchy-browser-menu.jsonc"
 
 # Detect install location for scripts
 if [[ -L /usr/share/omarchy/bin/omarchy-default-browser ]] || [[ -f /usr/bin/omarchy-default-browser ]]; then
@@ -32,7 +27,6 @@ fi
 
 # Menu extension always goes to user config
 MENU_DIR="$HOME/.config/omarchy/extensions"
-PROVIDER_DIR="$HOME/.config/omarchy/providers"
 
 set -e
 
@@ -45,14 +39,13 @@ echo "╚═══════════════════════�
 echo ""
 echo "  Scripts:  $SCRIPT_DIR"
 echo "  Menu:     $MENU_DIR"
-echo "  Providers: $PROVIDER_DIR"
 echo ""
 
 echo "==> Downloading patched files..."
 mkdir -p /tmp/omarchy-browser-patch
 cd /tmp/omarchy-browser-patch
 
-for file in "${SCRIPTS[@]}" "${MENU_FILES[@]}"; do
+for file in "${SCRIPTS[@]}" "$MENU_FILE"; do
   echo -n "    $file ... "
   curl -sLO "$REPO/$file"
   chmod +x "$file"
@@ -86,23 +79,15 @@ done
 
 echo ""
 echo "==> Installing Quickshell menu extension..."
-mkdir -p "$MENU_DIR" "$PROVIDER_DIR"
+mkdir -p "$MENU_DIR"
 
 # Back up existing menu extension if present
-if [[ -f "$MENU_DIR/omarchy-browser-menu.jsonc" ]]; then
-  cp "$MENU_DIR/omarchy-browser-menu.jsonc" "$MENU_DIR/omarchy-browser-menu.jsonc.bak.$(date +%s)"
+if [[ -f "$MENU_DIR/$MENU_FILE" ]]; then
+  cp "$MENU_DIR/$MENU_FILE" "$MENU_DIR/$MENU_FILE.bak.$(date +%s)"
 fi
 
-# Install JSONC menu extension
-cp omarchy-browser-menu.jsonc "$MENU_DIR/omarchy-browser-menu.jsonc"
-echo "    Installed omarchy-browser-menu.jsonc"
-
-# Install provider scripts
-for provider in omarchy-browser-menu-provider omarchy-browser-install-provider omarchy-browser-remove-provider; do
-  cp "$provider" "$PROVIDER_DIR/$provider"
-  chmod +x "$PROVIDER_DIR/$provider"
-  echo "    Installed $provider"
-done
+cp "$MENU_FILE" "$MENU_DIR/$MENU_FILE"
+echo "    Installed $MENU_FILE"
 
 echo ""
 echo "==> Cleaning up..."

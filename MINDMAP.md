@@ -21,8 +21,7 @@ mindmap
       remove_browser["omarchy-remove-browser<br/>11 remove paths"]
       webapp["omarchy-launch-webapp<br/>Chromium --app / Firefox --new-window / fallback"]
     Quickshell_Menu
-      jsonc["omarchy-browser-menu.jsonc<br/>Menu extension"]
-      providers["Provider scripts<br/>Dynamic browser lists"]
+      jsonc["omarchy-browser-menu.jsonc<br/>Adds 5 browsers to menus"]
 ```
 
 ## Architecture
@@ -49,10 +48,10 @@ mindmap
 ┌──────────────────────────────────────────────────────────┐
 │  Quickshell Menu Extension                               │
 │                                                          │
-│  omarchy-browser-menu.jsonc ──→ Provider scripts         │
-│  ├── setup.defaults.browser ──→ omarchy-browser-menu-provider │
-│  ├── install.browser ──→ omarchy-browser-install-provider    │
-│  └── remove.browser ──→ omarchy-browser-remove-provider      │
+│  omarchy-browser-menu.jsonc ──→ Dotted IDs               │
+│  ├── setup.default.browser.vivaldi/helium/floorp/...     │
+│  ├── install.browser.vivaldi/helium/floorp/...           │
+│  └── remove.browser.vivaldi/helium/floorp/...            │
 └──────────────────────────────────────────────────────────┘
 ```
 

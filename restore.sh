@@ -10,7 +10,7 @@ SCRIPTS=(
 )
 
 MENU_DIR="$HOME/.config/omarchy/extensions"
-PROVIDER_DIR="$HOME/.config/omarchy/providers"
+MENU_FILE="omarchy-browser-menu.jsonc"
 
 set -e
 
@@ -31,7 +31,6 @@ fi
 
 echo "  Scripts:   $SCRIPT_DIR"
 echo "  Menu ext:  $MENU_DIR"
-echo "  Providers: $PROVIDER_DIR"
 echo ""
 
 # Restore scripts
@@ -62,14 +61,8 @@ fi
 # Remove browser menu extension
 echo ""
 echo "==> Removing browser menu extension..."
-rm -f "$MENU_DIR/omarchy-browser-menu.jsonc"
-echo "    Removed omarchy-browser-menu.jsonc"
-
-# Remove provider scripts
-for provider in omarchy-browser-menu-provider omarchy-browser-install-provider omarchy-browser-remove-provider; do
-  rm -f "$PROVIDER_DIR/$provider"
-  echo "    Removed $provider"
-done
+rm -f "$MENU_DIR/$MENU_FILE"
+echo "    Removed $MENU_FILE"
 
 # Clean up backup files
 echo ""
@@ -77,7 +70,7 @@ echo "==> Cleaning up backup files..."
 for file in "${SCRIPTS[@]}"; do
   rm -f "$SCRIPT_DIR/$file.bak."* 2>/dev/null
 done
-rm -f "$MENU_DIR/omarchy-browser-menu.jsonc.bak."* 2>/dev/null
+rm -f "$MENU_DIR/$MENU_FILE.bak."* 2>/dev/null
 echo "    Done"
 
 echo ""
