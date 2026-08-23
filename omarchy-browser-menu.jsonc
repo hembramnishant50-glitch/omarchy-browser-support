@@ -10,17 +10,17 @@
   "setup.default.browser.waterfox": {"icon":"󰈹","label":"Waterfox","when":"omarchy-cmd-present waterfox","checked":"[[ \"$(omarchy-default-browser)\" == \"waterfox\" ]]","action":"omarchy-default-browser waterfox"},
   "setup.default.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","when":"omarchy-cmd-present librewolf","checked":"[[ \"$(omarchy-default-browser)\" == \"librewolf\" ]]","action":"omarchy-default-browser librewolf"},
 
-  // Install Browser — add missing browsers
-  "install.browser.vivaldi": {"icon":"","label":"Vivaldi","action":"omarchy-install-browser vivaldi"},
-  "install.browser.helium": {"icon":"󰀘","label":"Helium","action":"omarchy-install-browser helium"},
-  "install.browser.floorp": {"icon":"󰈹","label":"Floorp","action":"omarchy-install-browser floorp"},
-  "install.browser.waterfox": {"icon":"󰈹","label":"Waterfox","action":"omarchy-install-browser waterfox"},
-  "install.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","action":"omarchy-install-browser librewolf"},
+  // Install Browser — add missing browsers (hide if already installed)
+  "install.browser.vivaldi": {"icon":"","label":"Vivaldi","when":"! omarchy-pkg-present vivaldi","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser vivaldi'"},
+  "install.browser.helium": {"icon":"󰀘","label":"Helium","when":"! omarchy-pkg-present helium-browser-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser helium'"},
+  "install.browser.floorp": {"icon":"󰈹","label":"Floorp","when":"! omarchy-pkg-present floorp-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser floorp'"},
+  "install.browser.waterfox": {"icon":"󰈹","label":"Waterfox","when":"! omarchy-pkg-present waterfox-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser waterfox'"},
+  "install.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","when":"! omarchy-pkg-present librewolf-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser librewolf'"},
 
-  // Remove Browser — add missing browsers
-  "remove.browser.vivaldi": {"icon":"","label":"Vivaldi","action":"omarchy-remove-browser vivaldi"},
-  "remove.browser.helium": {"icon":"󰀘","label":"Helium","action":"omarchy-remove-browser helium"},
-  "remove.browser.floorp": {"icon":"󰈹","label":"Floorp","action":"omarchy-remove-browser floorp"},
-  "remove.browser.waterfox": {"icon":"󰈹","label":"Waterfox","action":"omarchy-remove-browser waterfox"},
-  "remove.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","action":"omarchy-remove-browser librewolf"}
+  // Remove Browser — add missing browsers (show only if installed)
+  "remove.browser.vivaldi": {"icon":"","label":"Vivaldi","when":"omarchy-pkg-present vivaldi","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-remove-browser vivaldi'"},
+  "remove.browser.helium": {"icon":"󰀘","label":"Helium","when":"omarchy-pkg-present helium-browser-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-remove-browser helium'"},
+  "remove.browser.floorp": {"icon":"󰈹","label":"Floorp","when":"omarchy-pkg-present floorp-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-remove-browser floorp'"},
+  "remove.browser.waterfox": {"icon":"󰈹","label":"Waterfox","when":"omarchy-pkg-present waterfox-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-remove-browser waterfox'"},
+  "remove.browser.librewolf": {"icon":"󰈹","label":"LibreWolf","when":"omarchy-pkg-present librewolf-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-remove-browser librewolf'"}
 }
