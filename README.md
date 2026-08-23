@@ -2,7 +2,7 @@
 
 # 🌐 Omarchy Browser Support Pack
 
-**Extended browser integration for Omarchy Linux** — install any browser, make it the system default, and launch site-specific web apps — all from the Walker menu.
+**Extended browser integration for Omarchy Linux** — install any browser, make it the system default, and launch site-specific web apps — all from the Shell menu.
 
 ![Browsers](https://img.shields.io/badge/browsers-12-2ea043)
 ![Scripts patched](https://img.shields.io/badge/scripts%20patched-5-f59e0b)
@@ -23,8 +23,8 @@
 > The installer backs up your original scripts automatically and installs all 5 patched files in one go.
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
-omarchy restart walker
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
+omarchy restart shell
 ```
 
 ---
@@ -35,7 +35,7 @@ omarchy restart walker
 - [What This Pack Changes](#what-this-pack-changes)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Walker Menu](#walker-menu)
+- [Shell Menu](#shell-menu)
 - [Uninstall & Restore](#uninstall--restore)
 - [Files](#files)
 - [Browser Details](#browser-details)
@@ -60,7 +60,7 @@ Every browser gets full integration:
 - 📦 `omarchy install browser <name>` — install from official repos or AUR
 - 🗑️ `omarchy remove browser <name>` — clean removal with Chromium fallback
 - 🪟 `omarchy launch webapp <url>` — site-specific window support
-- 🗺️ Walker menu entries under **Setup → Defaults → Browser**, **Install → Browser**, and **Remove → Browser**
+- 🗺️ Shell menu entries under **Setup → Defaults → Browser**, **Install → Browser**, and **Remove → Browser**
 
 > [!NOTE]
 > Omarchy ships with Chromium as the default browser. This pack does **not** change that — switch any time with `omarchy default browser <name>`.
@@ -104,7 +104,7 @@ Five Omarchy scripts are patched to recognize and handle every browser:
 | `omarchy-default-browser` | Detects and sets the default browser via `xdg-settings` and `xdg-mime` |
 | `omarchy-install-browser` | Installs a browser from official repos or AUR with managed policies |
 | `omarchy-remove-browser` | Removes a browser, cleans up config, falls back to Chromium |
-| `omarchy-menu` | Adds browser entries to the Walker menus (Setup / Install / Remove) |
+| `omarchy-menu` | Adds browser entries to the Shell menus (Setup / Install / Remove) |
 | `omarchy-launch-webapp` | Launches a URL as a site-specific window using the correct flag per engine |
 
 ### 🪟 Web App Behavior
@@ -126,14 +126,14 @@ Five Omarchy scripts are patched to recognize and handle every browser:
 ### Prerequisites
 
 - [Omarchy](https://omarchy.org/) (Arch Linux with Hyprland)
-- Walker (default launcher, comes with Omarchy)
+- Omarchy Shell (default launcher, comes with Omarchy)
 - `curl` (for one-click install)
 
 ### Option 1 — One-Click Install <sub>(recommended)</sub>
 
 ```bash
 bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
-omarchy restart walker
+omarchy restart shell
 ```
 
 This downloads all 5 patched scripts, backs up the originals, and installs them.
@@ -159,14 +159,14 @@ cp ~/.local/share/omarchy/bin/omarchy-launch-webapp{,.bak}
 # Install patched versions
 cp omarchy-* ~/.local/share/omarchy/bin/
 
-# Restart Walker
-omarchy restart walker
+# Restart Shell
+omarchy restart shell
 ```
 
 ### Option 3 — Use Individual Browsers Without Patching
 
 Even without this pack, you can install and use any of these browsers via
-Omarchy's existing commands. Patching only adds Walker menu entries and
+Omarchy's existing commands. Patching only adds Shell menu entries and
 improves `omarchy launch webapp` behavior.
 
 ```bash
@@ -211,7 +211,7 @@ omarchy remove browser waterfox       # Remove Waterfox + cleanup
 
 ---
 
-## 🗺️ Walker Menu
+## 🗺️ Shell Menu
 
 Press `SUPER+Space` and navigate:
 
@@ -236,8 +236,8 @@ SUPER+Space
 ### Option 1 — One-Click Restore
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
-omarchy restart walker
+bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/install.sh)
+omarchy restart shell
 ```
 
 The restore script uses `git checkout` from the Omarchy repository at
@@ -253,7 +253,7 @@ git checkout -- bin/omarchy-default-browser \
                bin/omarchy-remove-browser \
                bin/omarchy-menu \
                bin/omarchy-launch-webapp
-omarchy restart walker
+omarchy restart shell
 ```
 
 ### Option 3 — Remove a Single Browser
@@ -327,7 +327,7 @@ These scripts already worked correctly with all browser types:
 
 - **♻️ Restore:** The `restore.sh` script uses `git checkout` from the Omarchy
   repo — no separate backup files are needed. Original files are always one
-  command away.
+  command away. Run `omarchy restart shell` after restoring.
 
 - **🔑 Default browser:** Omarchy ships with Chromium as the system default.
   This pack does not change that. Switch at any time with
@@ -338,6 +338,9 @@ These scripts already worked correctly with all browser types:
 
 - **🪟 Wayland:** Firefox-based browsers get `MOZ_ENABLE_WAYLAND=1` set via
   `~/.config/environment.d/omarchy-firefox-wayland.conf` at install time.
+
+- **🔄 Shell Integration:** This pack is designed for Omarchy Quattro with the
+  Quickshell-based Omarchy Shell. Menus use `omarchy menu` commands.
 
 ---
 

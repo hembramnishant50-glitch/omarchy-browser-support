@@ -44,7 +44,7 @@ mindmap
 │  anything else ──→ chromium --app (fallback)              │
 └──────────────────────────────────────────────────────────┘
 
-## Walker Menu
+## Shell Menu
 
 ```
 SUPER+Space

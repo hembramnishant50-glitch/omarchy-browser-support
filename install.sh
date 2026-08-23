@@ -59,8 +59,8 @@ rm -rf /tmp/omarchy-browser-patch
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║   Done! Restart Walker:                  ║"
-echo "║     omarchy restart walker               ║"
+echo "║   Done! Restart Shell:                   ║"
+echo "║     omarchy restart shell                ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 echo "  To restore originals:"
