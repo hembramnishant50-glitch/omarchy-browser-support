@@ -1,7 +1,7 @@
 #!/bin/bash
 # Omarchy Browser Support Pack — Uninstaller
 # Removes the extra browser menu entries and selector scripts.
-# Usage: bash restore.sh
+# Usage: bash <(curl -sL https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main/restore.sh)
 
 MENU_DIR="$HOME/.config/omarchy/extensions"
 MENU_FILE="omarchy-browser-menu.jsonc"
