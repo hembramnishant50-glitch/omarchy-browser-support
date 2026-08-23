@@ -5,7 +5,7 @@
 
 REPO="https://raw.githubusercontent.com/hembramnishant50-glitch/omarchy-browser-support/main"
 MENU_DIR="$HOME/.config/omarchy/extensions"
-MENU_FILE="omarchy-browser-menu.jsonc"
+MENU_FILE="omarchy-menu.jsonc"
 BIN_DIR="$HOME/.local/bin"
 SELECTORS=("omarchy-browser-select" "omarchy-browser-select-remove")
 
