@@ -114,7 +114,8 @@ if [[ -L $TEST_TMP/bin/node ]]; then
   node_link=$(readlink "$TEST_TMP/bin/node")
   rm -f "$TEST_TMP/bin/node"
 fi
-run_cli doctor
+OUT=$(PATH="$(without_tool node)" "$ROOT/bin/omarchy-browsers" doctor 2>&1)
+STATUS=$?
 assert_status 0 "$STATUS"
 assert_contains "$OUT" "optional command missing: node"
 [[ -z $node_link ]] || ln -sf "$node_link" "$TEST_TMP/bin/node"

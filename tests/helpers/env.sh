@@ -151,6 +151,46 @@ STUB
 find "$TEST_TMP/bin" -maxdepth 1 -type f -exec chmod +x {} +
 
 # ---------------------------------------------------------------------------
+# Environment simulation
+# ---------------------------------------------------------------------------
+
+# without_tool <name> — print a PATH that hides one command but keeps the rest
+# of the system reachable, with the sandbox stubs first.
+#
+# Narrowing PATH to $TEST_TMP/bin would hide node, but it would also hide bash,
+# grep and everything the stubs shell out to, which makes doctor fail for the
+# wrong reason. Instead, mirror only the system directory that actually holds
+# the tool, minus that one entry, and pass the other directories through:
+# `command -v` then misses node while still finding what the CLI needs.
+without_tool() {
+  local name=$1 mirror="$TEST_TMP/no-$1" dir phys entry base
+  local pass_through=()
+  local -A visited=()
+
+  for dir in /usr/local/bin /usr/bin /bin; do
+    [[ -d $dir ]] || continue
+    phys=$(cd "$dir" && pwd -P)
+    [[ -n ${visited[$phys]+set} ]] && continue
+    visited[$phys]=1
+    if [[ -f $dir/$name && -x $dir/$name ]]; then
+      mkdir -p "$mirror"
+      for entry in "$dir"/*; do
+        base=${entry##*/}
+        [[ $base == "$name" ]] && continue
+        [[ -e $mirror/$base || -L $mirror/$base ]] && continue
+        ln -s "$entry" "$mirror/$base" 2>/dev/null || true
+      done
+    else
+      pass_through+=("$dir")
+    fi
+  done
+
+  local out="$TEST_TMP/bin:$mirror"
+  for dir in "${pass_through[@]}"; do out+=":$dir"; done
+  printf '%s' "$out"
+}
+
+# ---------------------------------------------------------------------------
 # Fixture helpers
 # ---------------------------------------------------------------------------
 
