@@ -107,15 +107,16 @@ assert_contains "$OUT" "Helium: command helium-browser resolves"
 
 test_case "a missing optional tool is a warning, not a failure"
 reset_state
-OUT=$(PATH="$TEST_TMP/bin:/usr/local/bin:/usr/bin:/bin" \
-  bash -c 'command -v node >/dev/null && exit 0; exit 1')
-# Only run the PATH-restricted check when node really is outside those dirs.
-if [[ $? == 0 ]]; then
-  reset_state
-  OUT=$(env PATH="/usr/bin:/bin" "$ROOT/bin/omarchy-browsers" doctor 2>&1)
-  STATUS=$?
-  assert_status 0 "$STATUS"
-  assert_contains "$OUT" "optional command missing: node"
+# Hide node from the sandbox instead of restricting PATH: the sandbox PATH also
+# carries the omarchy/pacman stubs, and doctor rightly fails without those.
+node_link=''
+if [[ -L $TEST_TMP/bin/node ]]; then
+  node_link=$(readlink "$TEST_TMP/bin/node")
+  rm -f "$TEST_TMP/bin/node"
 fi
+run_cli doctor
+assert_status 0 "$STATUS"
+assert_contains "$OUT" "optional command missing: node"
+[[ -z $node_link ]] || ln -sf "$node_link" "$TEST_TMP/bin/node"
 
 finish

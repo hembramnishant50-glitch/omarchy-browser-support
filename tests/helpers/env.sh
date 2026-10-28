@@ -146,7 +146,9 @@ cat >"$TEST_TMP/bin/curl" <<'STUB'
 exit 1
 STUB
 
-chmod +x "$TEST_TMP/bin/"*
+# Only the stubs are ours; node is a symlink to the real binary, and chmod
+# would follow it (and fail) on systems where that file is not owned by us.
+find "$TEST_TMP/bin" -maxdepth 1 -type f -exec chmod +x {} +
 
 # ---------------------------------------------------------------------------
 # Fixture helpers
