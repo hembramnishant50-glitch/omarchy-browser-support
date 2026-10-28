@@ -84,6 +84,8 @@ nothing here replaces them.
 ### Helium (the flagship)
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install helium
 omarchy-browsers default helium
 ```
@@ -96,6 +98,8 @@ installed automatically by `menu setup`. If the row shows a box or tofu, follow
 ### LibreWolf
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install librewolf
 omarchy-browsers default librewolf
 ```
@@ -103,6 +107,8 @@ omarchy-browsers default librewolf
 ### Waterfox
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install waterfox
 omarchy-browsers default waterfox
 ```
@@ -113,6 +119,8 @@ Waterfox comes from the AUR, so the install runs through Omarchy's AUR flow
 ### Vivaldi
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install vivaldi
 omarchy-browsers default vivaldi
 ```
@@ -125,6 +133,8 @@ through the row if they are missing.
 ### Floorp
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install floorp
 omarchy-browsers default floorp
 ```
@@ -135,16 +145,33 @@ flow as well.
 ### All of them
 
 ```bash
+cd omarchy-browser-support
+./install.sh
 omarchy-browsers install all
 ```
 
 Installs every browser in the registry.
+
+### Just LibreWolf, Waterfox, Vivaldi or Floorp — and skip Helium
+
+If you only want the Gecko- and Chromium-fork browsers and not Helium:
+
+```bash
+cd omarchy-browser-support
+./install.sh
+omarchy-browsers install librewolf waterfox vivaldi floorp
+omarchy-browsers default librewolf
+```
+
+Add or remove names from that list to taste; `install` accepts several names at
+once, and `default` takes whichever of them you picked.
 
 ---
 
 ## 4. Verify
 
 ```bash
+cd omarchy-browser-support
 omarchy-browsers status        # installed? default? who owns http(s)?
 omarchy-browsers doctor         # full diagnostics
 omarchy-browsers menu status   # managed block + validation
@@ -165,6 +192,7 @@ Nothing is special about install order — you can install, default and remove i
 any order, and switching is just:
 
 ```bash
+cd omarchy-browser-support
 omarchy-browsers default <name>   # e.g. librewolf
 ```
 
@@ -176,6 +204,7 @@ The default row embeds a check command, so the ✓ updates after the switch.
 ## 6. Remove a browser
 
 ```bash
+cd omarchy-browser-support
 omarchy-browsers remove <name>          # uninstall, keep profiles
 omarchy-browsers remove <name> --purge # uninstall + wipe profile paths
 omarchy-browsers remove all --purge    # full uninstall of the registry
@@ -189,6 +218,7 @@ an installed survivor first.
 ## 7. Uninstall the tool itself
 
 ```bash
+cd omarchy-browser-support
 ./uninstall.sh                 # remove menu block + the CLI symlink
 ./uninstall.sh --keep-menu     # keep the menu integration, drop the CLI
 ```
