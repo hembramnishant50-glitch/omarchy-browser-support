@@ -1,0 +1,27 @@
+# omarchy-browser-support — browser registry (tab separated, one browser per line)
+#
+# Every installer, remover, menu row and docs table is generated from this file.
+# Edit a row, then run:  omarchy-browsers menu setup
+#
+# Columns:
+#   1  name        CLI id + menu row suffix (lowercase, digits, dashes)
+#   2  display     Human name shown in the menu
+#   3  packages    Comma separated Arch packages; the FIRST one is primary
+#                  (drives menu visibility and the installed check)
+#   4  source      repo (official/omarchy repos) or aur (built through yay)
+#   5  command     Executable the package provides
+#   6  desktops    Comma separated .desktop ids, first one preferred
+#   7  glyph       Nerd Font glyph for notifications (U+XXXX or a literal char)
+#   8  menu_glyph  Optional glyph for menu rows only (U+XXXX or a literal char)
+#   9  icon_font   Optional Qt font family for the menu glyph (shipped in assets/)
+#  10  purge       Space separated paths under $HOME wiped by remove --purge
+#
+# Glyph codepoints (Nerd Font): helium U+F02A0, librewolf U+F059F,
+# waterfox/floorp U+F269, vivaldi U+F02AF. Helium's menu rows use U+E00B from
+# the bundled OmarchyHeliumIcon font (assets/), so the menu shows the real
+# starburst instead of a generic globe; every other row stays on Nerd Font.
+helium	Helium	helium-browser-bin	repo	helium-browser	helium.desktop	U+F02A0	U+E00B	OmarchyHeliumIcon	.config/helium .local/share/helium .cache/helium
+librewolf	LibreWolf	librewolf	repo	librewolf	librewolf.desktop	U+F059F			.librewolf .config/librewolf .cache/librewolf
+waterfox	Waterfox	waterfox-bin	aur	waterfox	waterfox.desktop	U+F269			.waterfox .config/waterfox .local/share/waterfox .cache/waterfox
+vivaldi	Vivaldi	vivaldi,vivaldi-ffmpeg-codecs	repo	vivaldi	vivaldi-stable.desktop,vivaldi.desktop	U+F02AF			.config/vivaldi .cache/vivaldi .local/share/vivaldi
+floorp	Floorp	floorp-bin	aur	floorp	floorp.desktop	U+F269			.floorp .config/floorp .cache/floorp

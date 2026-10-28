@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting guide
+    url: https://github.com/hembramnishant50-glitch/omarchy-browser-support/blob/main/docs/troubleshooting.md
+    about: Most menu, icon and install problems are covered here — start with `omarchy-browsers doctor`.
+  - name: Omarchy
+    url: https://github.com/basecamp/omarchy
+    about: Questions about Omarchy itself, not this tool.

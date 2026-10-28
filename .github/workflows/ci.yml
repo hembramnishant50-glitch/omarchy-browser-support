@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: lint + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Show tool versions
+        run: |
+          bash --version | head -1
+          node --version
+
+      - name: Syntax check every script
+        run: |
+          failed=0
+          while IFS= read -r file; do
+            bash -n "$file" || { echo "::error file=$file::syntax error"; failed=1; }
+          done < <(git ls-files '*.sh' 'bin/omarchy-browsers')
+          exit "$failed"
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck --version
+          shellcheck --shell=bash --severity=warning \
+            install.sh uninstall.sh bin/omarchy-browsers \
+            lib/*.sh tests/*.sh tests/helpers/env.sh
+
+      - name: Test suites
+        run: tests/run.sh --verbose

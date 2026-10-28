@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" fill="none" role="img" aria-label="omarchy-browser-support — Helium first">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#080B16"/>
+      <stop offset="1" stop-color="#121936"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="64" y1="84" x2="216" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B74FF"/>
+      <stop offset="1" stop-color="#2C40B8"/>
+    </linearGradient>
+    <linearGradient id="rule" x1="252" y1="0" x2="980" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B74FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5B74FF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1010 40) rotate(90) scale(340)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3450D1" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#3450D1" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#FFFFFF" fill-opacity="0.055"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="320" rx="26" fill="url(#bg)"/>
+  <rect width="1200" height="320" rx="26" fill="url(#dots)"/>
+  <rect width="1200" height="320" rx="26" fill="url(#glow)"/>
+
+  <!-- watermark -->
+  <g transform="translate(1052 162) rotate(-12) scale(1.15) translate(-128 -128)" opacity="0.09">
+    <path d="M145.966 207.813L128 221L110.034 207.813L118.198 144.891L67.4689 183.379L47 174.5L49.4993 152.438L108.391 128L49.4993 103.562L47 81.5L67.4689 72.6214L118.198 111.109L110.034 48.1871L128 35L145.966 48.1871L137.802 111.109L188.531 72.6214L209 81.5L206.501 103.562L147.609 128L206.501 152.438L209 174.5L188.531 183.379L137.802 144.891L145.966 207.813Z" fill="#FBFCFF"/>
+  </g>
+
+  <!-- icon tile -->
+  <g transform="translate(64 84)">
+    <rect width="152" height="152" rx="40" fill="url(#tile)"/>
+    <rect x="0.75" y="0.75" width="150.5" height="150.5" rx="39.25" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.5"/>
+    <g transform="scale(0.59375)">
+      <path d="M145.966 207.813L128 221L110.034 207.813L118.198 144.891L67.4689 183.379L47 174.5L49.4993 152.438L108.391 128L49.4993 103.562L47 81.5L67.4689 72.6214L118.198 111.109L110.034 48.1871L128 35L145.966 48.1871L137.802 111.109L188.531 72.6214L209 81.5L206.501 103.562L147.609 128L206.501 152.438L209 174.5L188.531 183.379L137.802 144.891L145.966 207.813Z" fill="#FBFCFF"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="252" y="150" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif" font-size="41" font-weight="800" fill="#F6F8FF" letter-spacing="-1.4">omarchy-browser-support</text>
+  <text x="254" y="188" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="500" fill="#98A5C9" letter-spacing="0.1">Helium first. Five browsers, one command.</text>
+  <rect x="254" y="202" width="210" height="2" rx="1" fill="url(#rule)"/>
+
+  <!-- chips -->
+  <g font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12.5" fill="#AEBBDD">
+    <rect x="254" y="222" width="236" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.055" stroke="#FFFFFF" stroke-opacity="0.13"/>
+    <text x="272" y="242">Super+X › Install › Browser</text>
+
+    <rect x="504" y="222" width="152" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.055" stroke="#FFFFFF" stroke-opacity="0.13"/>
+    <text x="522" y="242">Omarchy 4 · Arch</text>
+
+    <rect x="670" y="222" width="118" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.055" stroke="#FFFFFF" stroke-opacity="0.13"/>
+    <text x="688" y="242">AUR aware</text>
+  </g>
+
+  <!-- accent bar -->
+  <rect x="0" y="0" width="1200" height="4" rx="2" fill="url(#rule)"/>
+</svg>

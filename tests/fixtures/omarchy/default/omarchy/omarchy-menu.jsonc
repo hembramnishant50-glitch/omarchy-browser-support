@@ -1,0 +1,20 @@
+{
+  // Trimmed copy of Omarchy's stock menu, with the three Browser groups the
+  // managed block attaches to. Kept small on purpose: the suite only needs the
+  // parent ids to exist, not the full menu.
+  "root": {"icon": "󰣇", "label": "Go"},
+
+  "install": {"icon": "󰏔", "label": "Install"},
+  "install.browser": {"icon": "", "label": "Browser"},
+  "install.browser.chromium": {"label": "Chromium", "when": "! omarchy-pkg-present chromium", "action": "omarchy-pkg-install chromium"},
+  "install.browser.firefox": {"label": "Firefox", "when": "! omarchy-pkg-present firefox", "action": "omarchy-pkg-install firefox"},
+
+  "remove": {"icon": "󰩹", "label": "Remove"},
+  "remove.browser": {"icon": "", "label": "Browser"},
+  "remove.browser.firefox": {"label": "Firefox", "when": "omarchy-pkg-present firefox", "action": "omarchy-pkg-remove firefox"},
+
+  "setup": {"icon": "󰒓", "label": "Setup"},
+  "setup.default": {"icon": "", "label": "Defaults", "aliases": ["default", "defaults"]},
+  "setup.default.browser": {"icon": "", "label": "Browser"},
+  "setup.default.browser.firefox": {"label": "Firefox", "when": "omarchy-cmd-present firefox", "checked": "[[ \"$(omarchy-cmd-default-browser)\" == \"firefox.desktop\" ]]", "action": "omarchy-default-browser firefox"}
+}

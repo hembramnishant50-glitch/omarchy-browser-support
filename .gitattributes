@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+*.sh    text eol=lf
+*.tsv   text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.py    text eol=lf
+Makefile text eol=lf
+
+# Binary assets — never diff or merge these as text.
+*.ttf   binary
+*.png   binary
+*.jpg   binary
+
+# SVG is text and reviews nicely, but keep GitHub from rendering huge diffs.
+*.svg   text eol=lf
+*.svg   diff=svg

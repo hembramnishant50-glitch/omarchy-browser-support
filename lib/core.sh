@@ -1,49 +1,234 @@
 #!/usr/bin/env bash
 #
-# omarchy-browsers — shared registry and core operations.
-# Sourced by every install-*.sh, remove-*.sh, set-default.sh and menu-*.sh.
+# omarchy-browser-support — core library.
 #
-# One source of truth: every browser Omarchy does not ship is described in
-# BROWSER_REGISTRY below, and the menu rows, installers, removers and the
-# default-browser setter are all generated from it.
+# Everything the CLI does (install, remove, default, status, menu) is driven by
+# lib/browsers.tsv. This file loads that registry, validates it, and implements
+# the browser operations. It is sourced by bin/omarchy-browsers, lib/menu.sh and
+# the test harness — it is not meant to be executed directly.
+#
+# Conventions:
+#   * Nothing under /usr/share/omarchy is ever written to.
+#   * Every mutating operation honours DRY_RUN=1 (prints the command instead).
+#   * Functions return non-zero on failure; the dispatcher decides how loud to be.
+
+# shellcheck shell=bash
 
 set -euo pipefail
 
-OMARCHY_BROWSERS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export OMARCHY_PATH="${OMARCHY_PATH:-/usr/share/omarchy}"
+# shellcheck disable=SC2034 # read by bin/omarchy-browsers
+OMARCHY_BROWSERS_VERSION="1.0.0"
+OMARCHY_BROWSERS_ROOT="${OMARCHY_BROWSERS_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+OMARCHY_PATH="${OMARCHY_PATH:-/usr/share/omarchy}"
+REGISTRY_FILE="${OMARCHY_BROWSERS_REGISTRY:-$OMARCHY_BROWSERS_ROOT/lib/browsers.tsv}"
+
+# ---------------------------------------------------------------------------
+# Output helpers
+# ---------------------------------------------------------------------------
+
+if [[ -t 1 && -z ${NO_COLOR:-} ]]; then
+  C_RESET=$'\033[0m'
+  C_DIM=$'\033[2m'
+  C_BOLD=$'\033[1m'
+  C_CYAN=$'\033[36m'
+  C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'
+  C_RED=$'\033[31m'
+else
+  C_RESET='' C_DIM='' C_BOLD='' C_CYAN='' C_GREEN='' C_YELLOW='' C_RED=''
+fi
+
+info() { printf '%s%s%s\n' "$C_CYAN" "$*" "$C_RESET"; }
+ok()   { printf '%s%s%s\n' "$C_GREEN" "$*" "$C_RESET"; }
+warn() { printf '%swarning:%s %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2; }
+err()  { printf '%serror:%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; }
+die()  { err "$*"; exit 1; }
+
+# Run a command, or print it when DRY_RUN is set.
+run_cmd() {
+  if [[ -n ${DRY_RUN:-} ]]; then
+    printf '%s[dry-run]%s %s\n' "$C_DIM" "$C_RESET" "$*"
+    return 0
+  fi
+  "$@"
+}
+
+# Escape a string for a double-quoted JSON value.
+json_escape() {
+  local s=$1
+  s=${s//\\/\\\\}
+  s=${s//\"/\\\"}
+  s=${s//$'\n'/\\n}
+  s=${s//$'\t'/\\t}
+  printf '%s' "$s"
+}
+
+# Quote a word for a POSIX shell command line embedded in JSON.
+shq() {
+  local s=$1
+  printf "'%s'" "${s//\'/\'\\\'\'}"
+}
 
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
-# Fields (pipe separated):
-#   1 name        CLI argument and menu id suffix  (install.browser.<name>)
-#   2 display     Human name shown in the menu
-#   3 packages    Comma separated. FIRST package is the "primary" one and
-#                 drives menu visibility and install/remove decisions.
-#   4 source      repo (official Arch repos) | aur (AUR via yay)
-#   5 command     Executable name — used by `omarchy-cmd-present` menu guards
-#                 and to detect the .desktop entry at default-setting time.
-#   6 desktops    Comma separated .desktop id candidates (first = primary).
-#                 Checked in order, then a Exec= match is used as fallback.
-#   7 glyph       Nerd Font glyph used by the default-browser notification
-#   8 menu glyph  (optional) glyph used by the MENU rows instead of field 7.
-#                 Needed when the icon lives in a custom icon font (field 9).
-#   9 icon font   (optional) Qt font family rendering field 8. Empty means
-#                 the menu's normal Nerd Font. Built by
-#                 assets/build-helium-icon-font.py and installed to
-#                 ~/.local/share/fonts/ by menu-setup.sh.
+
+# Field constants — keep in sync with lib/browsers.tsv's header.
+TSV_NAME=0 TSV_DISPLAY=1 TSV_PACKAGES=2 TSV_SOURCE=3 TSV_COMMAND=4
+TSV_DESKTOPS=5 TSV_GLYPH=6 TSV_MENU_GLYPH=7 TSV_ICON_FONT=8 TSV_PURGE=9
+
+declare -a BROWSER_NAMES=()
+declare -A BROWSER_DISPLAY=() BROWSER_PACKAGES=() BROWSER_SOURCE=()
+declare -A BROWSER_COMMAND=() BROWSER_DESKTOPS=() BROWSER_GLYPH=()
+declare -A BROWSER_MENU_GLYPH=() BROWSER_ICON_FONT=() BROWSER_PURGE=()
+declare -a SPLIT_FIELDS=()
+
+# split_tsv <line> — fills SPLIT_FIELDS, preserving empty fields.
+# (`read` cannot do this: IFS whitespace collapses runs of tabs.)
+split_tsv() {
+  local rest=$1
+  SPLIT_FIELDS=()
+  while [[ $rest == *$'\t'* ]]; do
+    SPLIT_FIELDS+=("${rest%%$'\t'*}")
+    rest=${rest#*$'\t'}
+  done
+  SPLIT_FIELDS+=("$rest")
+}
+
+# decode_glyph <U+XXXX|literal> — turns a codepoint into the real character.
+decode_glyph() {
+  local value=$1 hex
+  if [[ $value =~ ^U\+([0-9A-Fa-f]{4,6})$ ]]; then
+    hex=$(printf '%08X' "$((16#${BASH_REMATCH[1]}))")
+    printf '%b' "\\U$hex"
+  else
+    printf '%s' "$value"
+  fi
+}
+
+registry_error() {
+  die "invalid registry ($REGISTRY_FILE): $*"
+}
+
+load_registry() {
+  [[ -f $REGISTRY_FILE ]] || die "registry not found: $REGISTRY_FILE"
+
+  local line lineno=0 name display packages source command desktops
+  local glyph menu_glyph icon_font purge path
+
+  while IFS= read -r line || [[ -n $line ]]; do
+    lineno=$((lineno + 1))
+
+    # Blank lines and comments.
+    if [[ -z ${line//[[:space:]]/} || $line == \#* ]]; then
+      continue
+    fi
+
+    split_tsv "$line"
+    if (( ${#SPLIT_FIELDS[@]} != 10 )); then
+      registry_error "line $lineno has ${#SPLIT_FIELDS[@]} fields, expected 10"
+    fi
+
+    name=${SPLIT_FIELDS[TSV_NAME]}
+    display=${SPLIT_FIELDS[TSV_DISPLAY]}
+    packages=${SPLIT_FIELDS[TSV_PACKAGES]}
+    source=${SPLIT_FIELDS[TSV_SOURCE]}
+    command=${SPLIT_FIELDS[TSV_COMMAND]}
+    desktops=${SPLIT_FIELDS[TSV_DESKTOPS]}
+    glyph=${SPLIT_FIELDS[TSV_GLYPH]}
+    menu_glyph=${SPLIT_FIELDS[TSV_MENU_GLYPH]}
+    icon_font=${SPLIT_FIELDS[TSV_ICON_FONT]}
+    purge=${SPLIT_FIELDS[TSV_PURGE]}
+
+    [[ $name =~ ^[a-z0-9][a-z0-9-]*$ ]] ||
+      registry_error "line $lineno: bad browser name '$name'"
+    [[ -n $display ]] || registry_error "line $lineno: empty display name"
+    [[ -n $packages ]] || registry_error "line $lineno: empty package list"
+    [[ -n $command ]] || registry_error "line $lineno: empty command"
+    [[ -n $desktops ]] || registry_error "line $lineno: empty desktop list"
+    [[ $source == repo || $source == aur ]] ||
+      registry_error "line $lineno: source must be 'repo' or 'aur', got '$source'"
+    [[ -z ${BROWSER_DISPLAY[$name]+set} ]] ||
+      registry_error "line $lineno: duplicate browser '$name'"
+
+    # A purge path must stay inside $HOME: compare after stripping leading ~/ or $HOME/.
+    for path in $purge; do
+      if [[ $path == /* || $path == *..* ]]; then
+        registry_error "line $lineno: unsafe purge path '$path'"
+      fi
+    done
+
+    BROWSER_NAMES+=("$name")
+    BROWSER_DISPLAY[$name]=$display
+    BROWSER_PACKAGES[$name]=$packages
+    BROWSER_SOURCE[$name]=$source
+    BROWSER_COMMAND[$name]=$command
+    BROWSER_DESKTOPS[$name]=$desktops
+    BROWSER_GLYPH[$name]=$(decode_glyph "$glyph")
+    BROWSER_ICON_FONT[$name]=$icon_font
+    BROWSER_PURGE[$name]=$purge
+
+    if [[ -n $menu_glyph ]]; then
+      BROWSER_MENU_GLYPH[$name]=$(decode_glyph "$menu_glyph")
+    else
+      BROWSER_MENU_GLYPH[$name]=$(decode_glyph "$glyph")
+    fi
+  done <"$REGISTRY_FILE"
+
+  (( ${#BROWSER_NAMES[@]} > 0 )) || die "registry is empty: $REGISTRY_FILE"
+}
+
+load_registry
+
 # ---------------------------------------------------------------------------
-BROWSER_REGISTRY=(
-  "helium|Helium|helium-browser-bin|repo|helium-browser|helium.desktop|󰊠||OmarchyHeliumIcon"
-  "librewolf|LibreWolf|librewolf|repo|librewolf|librewolf.desktop|󰖟"
-  "waterfox|Waterfox|waterfox-bin|aur|waterfox|waterfox.desktop|"
-  "vivaldi|Vivaldi|vivaldi,vivaldi-ffmpeg-codecs|repo|vivaldi|vivaldi-stable.desktop,vivaldi.desktop|󰊯"
-)
+# Registry accessors
+# ---------------------------------------------------------------------------
 
-NEW_BROWSER_NAMES=(helium librewolf waterfox vivaldi)
+browser_exists() { [[ -n ${BROWSER_DISPLAY[$1]+set} ]]; }
 
-# Desktop ids of the browsers Omarchy ships (for default-setting fallbacks).
-declare -A STOCK_BROWSER_DESKTOP=(
+require_browser() {
+  browser_exists "$1" ||
+    die "unknown browser '$1' — known browsers: ${BROWSER_NAMES[*]}"
+}
+
+browser_display() { printf '%s' "${BROWSER_DISPLAY[$1]}"; }
+browser_source() { printf '%s' "${BROWSER_SOURCE[$1]}"; }
+
+# Managed rows win; Omarchy's stock browsers fall back to their own table so
+# `status`/`doctor` can describe both kinds through one accessor.
+browser_command() {
+  if [[ -n ${BROWSER_COMMAND[$1]+set} ]]; then
+    printf '%s' "${BROWSER_COMMAND[$1]}"
+  elif [[ -n ${STOCK_COMMAND[$1]+set} ]]; then
+    printf '%s' "${STOCK_COMMAND[$1]}"
+  fi
+}
+browser_glyph() { printf '%s' "${BROWSER_GLYPH[$1]}"; }
+browser_menu_glyph() { printf '%s' "${BROWSER_MENU_GLYPH[$1]}"; }
+browser_icon_font() { printf '%s' "${BROWSER_ICON_FONT[$1]}"; }
+browser_primary_package() { printf '%s' "${BROWSER_PACKAGES[$1]%%,*}"; }
+
+# browser_packages <name> <array-name>
+browser_packages() {
+  # shellcheck disable=SC2178 # nameref target is an array in every caller
+  local -n _out=$2
+  IFS=',' read -r -a _out <<<"${BROWSER_PACKAGES[$1]}"
+}
+
+# browser_desktops <name> <array-name>
+browser_desktops() {
+  # shellcheck disable=SC2178 # nameref target is an array in every caller
+  local -n _out=$2
+  IFS=',' read -r -a _out <<<"${BROWSER_DESKTOPS[$1]}"
+}
+
+is_stock_browser() { [[ -n ${STOCK_DESKTOP[$1]+set} ]]; }
+
+# ---------------------------------------------------------------------------
+# Browsers Omarchy ships (used for default-browser fallbacks)
+# ---------------------------------------------------------------------------
+
+declare -A STOCK_DESKTOP=(
   [chromium]=chromium.desktop
   [chrome]=google-chrome.desktop
   [brave]=brave-browser.desktop
@@ -53,106 +238,126 @@ declare -A STOCK_BROWSER_DESKTOP=(
   [zen]=zen.desktop
 )
 
-# Preference order used when the current default browser is removed:
-# whatever survives first wins.
-DEFAULT_FALLBACK_ORDER=(chromium firefox brave-origin brave chrome edge zen helium librewolf waterfox vivaldi)
-
-# Data/config/cache directories wiped by `remove-*.sh --purge`.
-declare -A BROWSER_PURGE_PATHS=(
-  [helium]="$HOME/.config/helium $HOME/.local/share/helium $HOME/.cache/helium"
-  [librewolf]="$HOME/.librewolf $HOME/.config/librewolf $HOME/.cache/librewolf"
-  [waterfox]="$HOME/.waterfox $HOME/.config/waterfox $HOME/.local/share/waterfox $HOME/.cache/waterfox"
-  [vivaldi]="$HOME/.config/vivaldi $HOME/.local/share/vivaldi $HOME/.cache/vivaldi"
+declare -A STOCK_COMMAND=(
+  [chromium]=chromium
+  [chrome]=google-chrome-stable
+  [brave]=brave
+  [brave-origin]=brave-origin
+  [edge]=microsoft-edge-stable
+  [firefox]=firefox
+  [zen]=zen-browser
 )
 
+declare -A STOCK_DISPLAY=(
+  [chromium]=Chromium
+  [chrome]=Chrome
+  [brave]=Brave
+  [brave-origin]='Brave Origin'
+  [edge]=Edge
+  [firefox]=Firefox
+  [zen]=Zen
+)
+
+declare -A STOCK_GLYPH=(
+  [chromium]=U+F268
+  [chrome]=U+F02AF
+  [brave]=U+F059F
+  [brave-origin]=U+F059F
+  [edge]=U+F01E9
+  [firefox]=U+F0239
+  [zen]=U+F059F
+)
+
+# Whatever survives first wins when the current default browser goes away.
+STOCK_FALLBACK_ORDER=(chromium firefox brave-origin brave chrome edge zen)
+
 # ---------------------------------------------------------------------------
-# Small helpers
+# Package helpers
 # ---------------------------------------------------------------------------
 
-info() { printf '\033[36m%s\033[0m\n' "$*"; }
-ok()   { printf '\033[32m%s\033[0m\n' "$*"; }
-warn() { printf '\033[33m%s\033[0m\n' "$*" >&2; }
-die()  { printf '\033[31mError:\033[0m %s\n' "$*" >&2; exit 1; }
-
-# Run a command, or just print it when DRY_RUN=1 is set (used for testing).
-run_cmd() {
-  if [[ -n ${DRY_RUN:-} ]]; then
-    printf '[dry-run] %s\n' "$*"
-    return 0
+pkg_present() {
+  if command -v omarchy-pkg-present >/dev/null 2>&1; then
+    omarchy-pkg-present "$@"
+  elif command -v pacman >/dev/null 2>&1; then
+    local p
+    for p in "$@"; do pacman -Qq "$p" >/dev/null 2>&1 || return 1; done
+  else
+    return 1
   fi
-  "$@"
 }
 
-# registry_field <name> <1-based field number>
-registry_field() {
-  local name=$1 idx=$2 row
-  for row in "${BROWSER_REGISTRY[@]}"; do
-    if [[ ${row%%|*} == "$name" ]]; then
-      local IFS='|'
-      local -a parts
-      # Append a separator so a trailing EMPTY field survives the split.
-      read -r -a parts <<<"${row}|"
-      printf '%s' "${parts[$((idx - 1))]:-}"
-      return 0
-    fi
+pkg_missing() {
+  if command -v omarchy-pkg-missing >/dev/null 2>&1; then
+    omarchy-pkg-missing "$@"
+  elif command -v pacman >/dev/null 2>&1; then
+    local p
+    for p in "$@"; do pacman -Qq "$p" >/dev/null 2>&1 || return 0; done
+    return 1
+  else
+    return 0
+  fi
+}
+
+cmd_present() {
+  if command -v omarchy-cmd-present >/dev/null 2>&1; then
+    omarchy-cmd-present "$1"
+  else
+    command -v "$1" >/dev/null 2>&1
+  fi
+}
+
+browser_installed() {
+  local -a pkgs
+  browser_packages "$1" pkgs
+  pkg_present "${pkgs[@]}"
+}
+
+# A browser with several packages counts as installed while any part remains —
+# otherwise a half-removed Vivaldi would look like it was never there.
+browser_installed_any() {
+  local -a pkgs
+  local p
+  browser_packages "$1" pkgs
+  for p in "${pkgs[@]}"; do
+    pkg_present "$p" && return 0
   done
   return 1
 }
 
-browser_display()  { registry_field "$1" 2; }
-browser_source()   { registry_field "$1" 4; }
-browser_cmd()      { registry_field "$1" 5; }
-browser_glyph()    { registry_field "$1" 7; }
-browser_menu_glyph() {
-  local g
-  g=$(registry_field "$1" 8)
-  if [[ -n $g ]]; then printf '%s' "$g"; else registry_field "$1" 7; fi
-}
-browser_icon_font() { registry_field "$1" 9; }
+browser_runnable() { cmd_present "$(browser_command "$1")"; }
 
-# browser_pkgs <name> <array-name>   — fills the named array with packages.
-browser_pkgs() {
-  local name=$1 out=$2 csv
-  csv=$(registry_field "$name" 3) || die "unknown browser: $name"
-  IFS=',' read -r -a "$out" <<<"$csv"
-}
+# ---------------------------------------------------------------------------
+# .desktop detection
+# ---------------------------------------------------------------------------
 
-# browser_desktop_candidates <name> <array-name>
-browser_desktop_candidates() {
-  local name=$1 out=$2 csv
-  csv=$(registry_field "$name" 6) || die "unknown browser: $name"
-  IFS=',' read -r -a "$out" <<<"$csv"
-}
-
-is_new_browser() {
-  local n
-  for n in "${NEW_BROWSER_NAMES[@]}"; do [[ $n == "$1" ]] && return 0; done
-  return 1
-}
-
-is_stock_browser() {
-  [[ -n ${STOCK_BROWSER_DESKTOP[$1]+x} ]]
-}
-
-require_new_browser() {
-  is_new_browser "$1" || die "unknown browser '$1'. Known: ${NEW_BROWSER_NAMES[*]}"
-}
-
-# Data dirs searched for .desktop entries, in XDG order.
 desktop_data_dirs() {
-  printf '%s\n' "${XDG_DATA_HOME:-$HOME/.local/share}" /usr/local/share /usr/share
+  local dir
+  local IFS=:
+  # shellcheck disable=SC2086 # deliberate word splitting on ':'
+  for dir in ${XDG_DATA_HOME:-$HOME/.local/share} ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+    [[ -n $dir ]] && printf '%s\n' "$dir"
+  done
 }
 
-# detect_desktop <name> -> prints the installed .desktop id (or fails).
-# 1. try the declared candidates, 2. fall back to matching Exec= against the
-# browser command, so a package that ships an unexpected id still resolves.
-detect_desktop() {
-  local name=$1
-  local -a candidates pkgs
-  local cmd dir id f exec_line
+desktop_exec_command() {
+  local file=$1 line token
+  line=$(sed -n 's/^Exec=//p' "$file" 2>/dev/null | head -n1) || return 1
+  [[ -n $line ]] || return 1
+  token=${line%% *}
+  token=${token#\"}
+  token=${token%\"}
+  printf '%s' "${token##*/}"
+}
 
-  browser_desktop_candidates "$name" candidates || return 1
-  cmd=$(browser_cmd "$name")
+# detect_desktop <name> — prints the desktop id that belongs to the browser.
+# Tries the declared ids first, then falls back to matching Exec= against the
+# browser's command, so a package that renames its entry still resolves.
+detect_desktop() {
+  local name=$1 id dir file command
+  local -a candidates
+
+  browser_desktops "$name" candidates
+  command=$(browser_command "$name")
 
   for id in "${candidates[@]}"; do
     while IFS= read -r dir; do
@@ -165,11 +370,10 @@ detect_desktop() {
 
   while IFS= read -r dir; do
     [[ -d $dir/applications ]] || continue
-    for f in "$dir"/applications/*.desktop; do
-      [[ -r $f ]] || continue
-      exec_line=$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' "$f" | head -1)
-      if [[ ${exec_line##*/} == "$cmd" ]]; then
-        printf '%s\n' "${f##*/}"
+    for file in "$dir"/applications/*.desktop; do
+      [[ -r $file ]] || continue
+      if [[ $(desktop_exec_command "$file" || true) == "$command" ]]; then
+        printf '%s\n' "${file##*/}"
         return 0
       fi
     done
@@ -179,225 +383,320 @@ detect_desktop() {
 }
 
 # ---------------------------------------------------------------------------
-# Install
+# Current default browser
+# ---------------------------------------------------------------------------
+
+current_default_desktop() {
+  local desktop=''
+  if command -v omarchy-cmd-default-browser >/dev/null 2>&1; then
+    desktop=$(omarchy-cmd-default-browser 2>/dev/null || true)
+  fi
+  if [[ -z $desktop || $desktop == omarchy-browser.desktop ]] &&
+    command -v xdg-mime >/dev/null 2>&1; then
+    desktop=$(xdg-mime query default x-scheme-handler/https 2>/dev/null || true)
+  fi
+  # omarchy-browser.desktop is Omarchy's own redirect stubs, not a browser.
+  [[ $desktop == omarchy-browser.desktop ]] && desktop=''
+  printf '%s' "$desktop"
+}
+
+# check_default <name> — succeeds when the browser owns the http(s) handler.
+check_default() {
+  local name=$1 desktop current
+  current=$(current_default_desktop)
+
+  if is_stock_browser "$name"; then
+    desktop=${STOCK_DESKTOP[$name]}
+  elif browser_exists "$name"; then
+    desktop=$(detect_desktop "$name" 2>/dev/null) || return 1
+  else
+    return 1
+  fi
+
+  [[ -n $current && $current == "$desktop" ]]
+}
+
+# ---------------------------------------------------------------------------
+# Set the default browser
+# ---------------------------------------------------------------------------
+
+browser_label() {
+  if is_stock_browser "$1"; then
+    printf '%s' "${STOCK_DISPLAY[$1]}"
+  elif browser_exists "$1"; then
+    browser_display "$1"
+  else
+    printf '%s' "$1"
+  fi
+}
+
+browser_notify_glyph() {
+  if is_stock_browser "$1"; then
+    decode_glyph "${STOCK_GLYPH[$1]}"
+  elif browser_exists "$1"; then
+    browser_glyph "$1"
+  fi
+}
+
+set_default_browser() {
+  local name=$1 desktop label glyph got
+
+  if is_stock_browser "$name"; then
+    desktop=${STOCK_DESKTOP[$name]}
+  elif browser_exists "$name"; then
+    if ! desktop=$(detect_desktop "$name"); then
+      # A preview is still useful before the browser is installed: fall back
+      # to the preferred declared id instead of refusing to print anything.
+      if [[ -n ${DRY_RUN:-} ]]; then
+        local -a candidates
+        browser_desktops "$name" candidates
+        desktop=${candidates[0]}
+      else
+        die "$(browser_display "$name") is not installed (no .desktop entry found)"
+      fi
+    fi
+  else
+    die "unknown browser '$name' — known browsers: ${BROWSER_NAMES[*]} ${!STOCK_DESKTOP[*]}"
+  fi
+
+  label=$(browser_label "$name")
+  glyph=$(browser_notify_glyph "$name")
+
+  # xdg-settings verifies its own write by reading the handler back. The
+  # session points $BROWSER (and the desktop-specific list) at
+  # omarchy-browser.desktop, so hide both to let it read the real entry.
+  run_cmd env -u BROWSER XDG_CURRENT_DESKTOP= xdg-settings set default-web-browser "$desktop" ||
+    die "xdg-settings failed to set $desktop"
+
+  if [[ -z ${DRY_RUN:-} ]]; then
+    got=$(current_default_desktop)
+    if [[ $got != "$desktop" ]]; then
+      run_cmd env -u BROWSER XDG_CURRENT_DESKTOP= xdg-mime default "$desktop" \
+        x-scheme-handler/http x-scheme-handler/https ||
+        die "xdg-mime fallback failed"
+      got=$(current_default_desktop)
+      [[ $got == "$desktop" ]] ||
+        die "could not make $desktop the default (reader sees: ${got:-nothing})"
+    fi
+
+    if command -v omarchy-notification-send >/dev/null 2>&1; then
+      omarchy-notification-send -g "$glyph" "$label is now the default browser" >/dev/null 2>&1 || true
+    fi
+  fi
+
+  ok "$label is now the default browser."
+}
+
+# ---------------------------------------------------------------------------
+# Install / remove
 # ---------------------------------------------------------------------------
 
 install_browser() {
-  local name=$1
-  require_new_browser "$name"
-
-  local display source
+  local name=$1 display source primary
   local -a pkgs
+  local desktop
+
+  require_browser "$name"
   display=$(browser_display "$name")
   source=$(browser_source "$name")
-  browser_pkgs "$name" pkgs
+  browser_packages "$name" pkgs
+  primary=${pkgs[0]}
 
-  if omarchy-pkg-present "${pkgs[@]}"; then
+  if pkg_present "${pkgs[@]}"; then
     ok "$display is already installed."
+    if desktop=$(detect_desktop "$name" 2>/dev/null); then
+      info "desktop entry: $desktop"
+    fi
     return 0
   fi
 
-  info "Installing $display (${pkgs[*]}) from $([[ $source == aur ]] && echo AUR || echo 'official repos')..."
+  info "Installing $display (${pkgs[*]}) from $([[ $source == aur ]] && echo 'the AUR' || echo 'the official repositories')…"
 
   case $source in
-  repo) run_cmd omarchy pkg add "${pkgs[@]}" || die "failed to install ${pkgs[*]}" ;;
-  aur)
-    omarchy pkg aur accessible >/dev/null 2>&1 || warn "AUR reachability check failed — trying anyway."
-    run_cmd omarchy pkg aur add "${pkgs[@]}" || die "failed to install ${pkgs[*]} from the AUR"
+  repo)
+    run_cmd omarchy pkg add "${pkgs[@]}" || die "failed to install ${pkgs[*]}"
     ;;
-  *) die "unknown source '$source' for $name" ;;
+  aur)
+    if command -v omarchy >/dev/null 2>&1; then
+      omarchy pkg aur accessible >/dev/null 2>&1 ||
+        warn "AUR availability check failed — trying anyway."
+    fi
+    run_cmd omarchy pkg aur add "${pkgs[@]}" ||
+      die "failed to install ${pkgs[*]} from the AUR"
+    ;;
   esac
 
   [[ -n ${DRY_RUN:-} ]] && return 0
 
-  omarchy-pkg-present "${pkgs[0]}" || die "${pkgs[0]} did not install"
+  pkg_present "$primary" || die "$primary did not install correctly"
 
-  echo ""
+  echo
   ok "$display installed."
-  echo "Make it the default:  ./set-default.sh $name"
-  echo "(or via the menu: Setup > Defaults > Browser)"
+  if desktop=$(detect_desktop "$name" 2>/dev/null); then
+    info "desktop entry: $desktop"
+  else
+    warn "no .desktop entry found — try logging out and back in, then rerun 'omarchy-browsers status'."
+  fi
+  printf 'Make it the default:  %s default %s\n' \
+    "${OMARCHY_BROWSERS_BIN:-omarchy-browsers}" "$name"
 }
 
-# ---------------------------------------------------------------------------
-# Remove
-# ---------------------------------------------------------------------------
-
-# pick_fallback_default <exclude-name> -> prints a browser name to become the
-# new default, or fails when nothing else is installed.
-pick_fallback_default() {
-  local exclude=$1 name desktop
-
-  for name in "${DEFAULT_FALLBACK_ORDER[@]}"; do
-    [[ $name == "$exclude" ]] && continue
-    if is_stock_browser "$name"; then
-      local desktop=${STOCK_BROWSER_DESKTOP[$name]}
-      local cmd
-      case $name in
-      chromium) cmd=chromium ;;
-      chrome) cmd=google-chrome-stable ;;
-      brave) cmd=brave ;;
-      brave-origin) cmd=brave-origin ;;
-      edge) cmd=microsoft-edge-stable ;;
-      firefox) cmd=firefox ;;
-      zen) cmd=zen-browser ;;
-      esac
-      if omarchy-cmd-present "$cmd"; then
-        printf '%s\n' "$name"
-        return 0
-      fi
-    elif is_new_browser "$name"; then
-      if detect_desktop "$name" >/dev/null; then
-        printf '%s\n' "$name"
-        return 0
-      fi
+purge_browser_paths() {
+  local name=$1 path full
+  require_browser "$name"
+  for path in ${BROWSER_PURGE[$name]}; do
+    full=$HOME/${path#\~/}
+    if [[ -e $full ]]; then
+      warn "purging $full"
+      run_cmd rm -rf -- "$full"
     fi
+  done
+}
+
+# pick_fallback_default <exclude-name> — prints a browser to take over, if any.
+pick_fallback_default() {
+  local exclude=$1 name
+
+  for name in "${STOCK_FALLBACK_ORDER[@]}"; do
+    [[ $name == "$exclude" ]] && continue
+    cmd_present "${STOCK_COMMAND[$name]}" && { printf '%s\n' "$name"; return 0; }
+  done
+
+  for name in "${BROWSER_NAMES[@]}"; do
+    [[ $name == "$exclude" ]] && continue
+    detect_desktop "$name" >/dev/null 2>&1 && { printf '%s\n' "$name"; return 0; }
   done
 
   return 1
 }
 
-# Delete a browser's profile/config/cache directories (the --purge paths).
-purge_browser_paths() {
-  local name=$1 paths expanded p
-  paths=$(printf '%s' "${BROWSER_PURGE_PATHS[$name]:-}")
-  for p in $paths; do
-    expanded=${p/#\~/$HOME}
-    if [[ -e $expanded ]]; then
-      warn "purging $expanded"
-      run_cmd rm -rf -- "$expanded"
-    fi
-  done
-}
-
 remove_browser() {
-  local name=$1
-  local purge=${2:-}
-  require_new_browser "$name"
-
-  local display
+  local name=$1 purge=${2:-} display current fallback
   local -a pkgs
-  display=$(browser_display "$name")
-  browser_pkgs "$name" pkgs
 
-  if omarchy-pkg-missing "${pkgs[@]}"; then
-    if [[ $purge == "--purge" ]]; then
-      # Package is already gone, but leftover profile/cache data may remain —
-      # --purge should still wipe it.
+  require_browser "$name"
+  display=$(browser_display "$name")
+  browser_packages "$name" pkgs
+
+  if ! browser_installed_any "$name"; then
+    if [[ $purge == --purge ]]; then
       purge_browser_paths "$name"
-      ok "$display was not installed; leftover profile data purged (if any)."
+      ok "$display was not installed; leftover profile data purged."
     else
       ok "$display is not installed — nothing to remove."
     fi
     return 0
   fi
 
-  # If the browser being removed is the current default, hand the default
-  # over to something that survives before xdg loses its handler.
-  local current fb
-  current=$(omarchy-cmd-default-browser 2>/dev/null || true)
-  if [[ -n $current ]] && detect_desktop "$name" >/dev/null 2>&1 && [[ $current == "$(detect_desktop "$name")" ]]; then
-    if fb=$(pick_fallback_default "$name"); then
-      info "$display was the default browser — switching default to $(browser_display "$fb")..."
-      set_default_browser "$fb" || warn "could not switch the default browser automatically; set one via Setup > Defaults > Browser."
+  # If this browser is the default, hand the handler to a survivor first.
+  current=$(current_default_desktop)
+  if [[ -n $current ]] && check_default "$name"; then
+    if fallback=$(pick_fallback_default "$name"); then
+      info "$display is the default — switching the default to $(browser_label "$fallback")…"
+      set_default_browser "$fallback" ||
+        warn "could not switch the default automatically; pick one in Setup › Defaults › Browser."
     else
-      warn "$display was the default browser and no other browser is installed."
-      warn "Install one later and set it via Setup > Defaults > Browser."
+      warn "$display is the default and no other browser is installed."
+      warn "Install another browser and set it in Setup › Defaults › Browser."
     fi
   fi
 
-  info "Removing $display (${pkgs[*]})..."
+  info "Removing $display (${pkgs[*]})…"
   run_cmd omarchy pkg drop "${pkgs[@]}" || die "failed to remove ${pkgs[*]}"
 
-  if [[ $purge == "--purge" ]]; then
+  if [[ $purge == --purge ]]; then
     purge_browser_paths "$name"
   fi
 
   [[ -n ${DRY_RUN:-} ]] && return 0
 
-  omarchy-pkg-missing "${pkgs[0]}" || die "${pkgs[0]} is still installed"
-  ok "$display removed."$([[ $purge == "--purge" ]] && echo " Profile data purged.")
+  pkg_missing "${pkgs[0]}" || die "${pkgs[0]} is still installed"
+  ok "$display removed.$([[ $purge == --purge ]] && echo ' Profile data purged.')"
 }
 
 # ---------------------------------------------------------------------------
-# Default browser
+# Reporting
 # ---------------------------------------------------------------------------
 
-set_default_browser() {
-  local name=$1
-  local desktop display glyph
-
-  if is_stock_browser "$name"; then
-    desktop=${STOCK_BROWSER_DESKTOP[$name]}
-    display=$name
-    glyph=󰊯
-  else
-    require_new_browser "$name"
-    desktop=$(detect_desktop "$name") || die "$(browser_display "$name") is not installed"
-    display=$(browser_display "$name")
-    glyph=$(browser_glyph "$name")
-  fi
-
-  # Same trick as stock omarchy-default-browser: xdg-settings reads $BROWSER
-  # back and the session points it at omarchy-launch-browser, so it must go.
-  run_cmd env -u BROWSER XDG_CURRENT_DESKTOP= xdg-settings set default-web-browser "$desktop" ||
-    die "xdg-settings failed for $desktop"
-
-  [[ -n ${DRY_RUN:-} ]] && return 0
-
-  # Verify through the same reader the menu's ✓ marks use. If xdg-settings
-  # landed somewhere the reader ignores, set the mime handler directly.
-  local got
-  got=$(omarchy-cmd-default-browser 2>/dev/null || true)
-  if [[ $got != "$desktop" ]]; then
-    run_cmd env -u BROWSER XDG_CURRENT_DESKTOP= xdg-mime default "$desktop" \
-      x-scheme-handler/http x-scheme-handler/https || die "xdg-mime fallback failed"
-    got=$(omarchy-cmd-default-browser 2>/dev/null || true)
-    [[ $got == "$desktop" ]] || die "could not make $desktop the default (reader sees: ${got:-nothing})"
-  fi
-
-  command -v omarchy-notification-send >/dev/null 2>&1 &&
-    omarchy-notification-send -g "$glyph" "$(browser_display_or_stock "$name") is now the default browser" || true
-
-  ok "$(browser_display_or_stock "$name") is now the default browser."
+status_header() {
+  printf '%s%-11s %-11s %-10s %-8s %-24s %s%s\n' \
+    "$C_BOLD" NAME DISPLAY INSTALLED DEFAULT 'DESKTOP ENTRY' COMMAND "$C_RESET"
 }
 
-browser_display_or_stock() {
-  if is_new_browser "$1"; then browser_display "$1"; else printf '%s' "$1"; fi
-}
-
-# check_default <name> — exit 0 when this browser is the current default.
-# Used by the menu's `checked:` expressions to draw the ✓.
-check_default() {
-  local name=$1 desktop
-
-  if is_stock_browser "$name"; then
-    desktop=${STOCK_BROWSER_DESKTOP[$name]}
-  elif is_new_browser "$name"; then
-    desktop=$(detect_desktop "$name" 2>/dev/null) || return 1
-  else
-    return 1
-  fi
-
-  [[ $(omarchy-cmd-default-browser 2>/dev/null) == "$desktop" ]]
-}
-
-print_default_status() {
+print_status() {
   local current
-  current=$(omarchy-cmd-default-browser 2>/dev/null || echo "")
-  echo "Current default browser: ${current:-unknown}"
-  echo ""
-  echo "Set a default:  ./set-default.sh <browser>"
-  echo ""
-  printf '%-10s %-12s %-10s %s\n' "BROWSER" "INSTALLED" "DEFAULT" "COMMAND"
-  local name
-  for name in "${NEW_BROWSER_NAMES[@]}"; do
+  current=$(current_default_desktop)
+  if [[ -n $current ]]; then
+    info "Default browser: $current"
+  else
+    warn "No default browser is set."
+  fi
+
+  echo
+  status_header
+  local name installed default desktop
+  for name in "${BROWSER_NAMES[@]}"; do
+    installed='no'
+    browser_installed "$name" && installed='yes'
+    default='·'
+    check_default "$name" && default='✓'
+    desktop='—'
+    desktop=$(detect_desktop "$name" 2>/dev/null || printf '—')
+    printf '%-11s %-11s %-10s %-8s %-24s %s\n' \
+      "$name" "$(browser_display "$name")" "$installed" "$default" \
+      "$desktop" "$(browser_command "$name")"
+  done
+}
+
+print_status_json() {
+  local name first=1 current os_version
+  current=$(current_default_desktop)
+
+  os_version=''
+  if command -v omarchy >/dev/null 2>&1; then
+    os_version=$(omarchy version 2>/dev/null | head -n1 || true)
+  fi
+
+  printf '{\n'
+  printf '  "schema": 1,\n'
+  printf '  "omarchy_version": "%s",\n' "$(json_escape "$os_version")"
+  printf '  "default_browser": "%s",\n' "$(json_escape "$current")"
+  printf '  "browsers": [\n'
+
+  for name in "${BROWSER_NAMES[@]}"; do
+    local desktop='' installed=false is_default=false packages_json=''
     local -a pkgs
-    browser_pkgs "$name" pkgs
-    local inst="no" def="" cmd
-    omarchy-pkg-present "${pkgs[0]}" && inst="yes"
-    check_default "$name" && def="YES"
-    cmd=$(browser_cmd "$name")
-    command -v "$cmd" >/dev/null 2>&1 || cmd="$cmd (missing)"
-    printf '%-10s %-12s %-10s %s\n' "$name" "$inst" "${def:-—}" "$cmd"
+    local pkg
+    browser_packages "$name" pkgs
+    browser_installed "$name" && installed=true
+    check_default "$name" && is_default=true
+    desktop=$(detect_desktop "$name" 2>/dev/null || true)
+    for pkg in "${pkgs[@]}"; do
+      packages_json+="${packages_json:+,}\"$(json_escape "$pkg")\""
+    done
+
+    (( first )) || printf ',\n'
+    first=0
+    printf '    {"name": "%s", "display": "%s", "packages": [%s], "source": "%s", "command": "%s", "desktop": "%s", "installed": %s, "default": %s}' \
+      "$(json_escape "$name")" \
+      "$(json_escape "$(browser_display "$name")")" \
+      "$packages_json" \
+      "$(json_escape "$(browser_source "$name")")" \
+      "$(json_escape "$(browser_command "$name")")" \
+      "$(json_escape "$desktop")" \
+      "$installed" "$is_default"
+  done
+
+  printf '\n  ]\n}\n'
+}
+
+print_browser_table() {
+  printf '%s%-11s %-11s %-6s %-40s %s%s\n' \
+    "$C_BOLD" NAME DISPLAY SOURCE PACKAGES COMMAND "$C_RESET"
+  local name
+  for name in "${BROWSER_NAMES[@]}"; do
+    printf '%-11s %-11s %-6s %-40s %s\n' \
+      "$name" "$(browser_display "$name")" "$(browser_source "$name")" \
+      "${BROWSER_PACKAGES[$name]}" "$(browser_command "$name")"
   done
 }

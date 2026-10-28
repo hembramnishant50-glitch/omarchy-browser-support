@@ -1,0 +1,322 @@
+#!/usr/bin/env bash
+#
+# omarchy-browsers — one command to install, remove, and switch browsers on
+# Omarchy, and to keep the Omarchy menu's Browser submenus in sync.
+#
+# The CLI is a thin dispatcher: lib/core.sh owns the registry and the browser
+# operations, lib/menu.sh owns the menu integration, and lib/doctor.sh owns
+# diagnostics. Run `omarchy-browsers help` for the full surface.
+#
+# This script deliberately resolves its own symlinks: install.sh links it into
+# ~/.local/bin, so $0 is a symlink and a naive dirname would look for lib/ in
+# the wrong place.
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Locate the checkout, even through a chain of symlinks
+# ---------------------------------------------------------------------------
+
+resolve_self() {
+  local src=${BASH_SOURCE[0]} dir
+  while [[ -L $src ]]; do
+    dir=$(cd -P -- "$(dirname -- "$src")" && pwd)
+    src=$(readlink -- "$src")
+    [[ $src == /* ]] || src="$dir/$src"
+  done
+  cd -P -- "$(dirname -- "$src")" && pwd
+}
+
+SELF_DIR=$(resolve_self)
+ROOT=$(cd -P -- "$SELF_DIR/.." && pwd)
+# Respect an explicit override (doctor's tests simulate a checkout living under
+# Omarchy); otherwise report the real checkout.
+export OMARCHY_BROWSERS_ROOT="${OMARCHY_BROWSERS_ROOT:-$ROOT}"
+
+# --no-color has to be seen before the libraries pick their palette.
+for arg in "$@"; do
+  [[ $arg == --no-color ]] && export NO_COLOR=1
+done
+
+# shellcheck source=../lib/core.sh
+source "$ROOT/lib/core.sh"
+# shellcheck source=../lib/menu.sh
+source "$ROOT/lib/menu.sh"
+# shellcheck source=../lib/doctor.sh
+source "$ROOT/lib/doctor.sh"
+
+OMARCHY_BROWSERS_BIN="${OMARCHY_BROWSERS_BIN:-$ROOT/bin/omarchy-browsers}"
+export OMARCHY_BROWSERS_BIN
+
+# Pull the global options out of the argument list; they are valid before or
+# after the command (`--dry-run install helium` and `install helium --dry-run`
+# mean the same thing).
+cmd_args=()
+for arg in "$@"; do
+  case $arg in
+  --dry-run) DRY_RUN=1 ;;
+  --no-color) ;;
+  *) cmd_args+=("$arg") ;;
+  esac
+done
+DRY_RUN=${DRY_RUN:-}
+export DRY_RUN
+
+if (( ${#cmd_args[@]} )); then
+  set -- "${cmd_args[@]}"
+else
+  set --
+fi
+
+# ---------------------------------------------------------------------------
+# Help and version
+# ---------------------------------------------------------------------------
+
+usage() {
+  cat <<EOF
+omarchy-browsers ${OMARCHY_BROWSERS_VERSION} — browsers for Omarchy, managed from one place
+
+USAGE
+  omarchy-browsers <command> [options]
+
+COMMANDS
+  install <name…>        install one or more browsers ("all" for every one)
+  remove <name…>         uninstall browsers; --purge also wipes their profiles
+  default [<name>]       print, or set, the default browser
+  status [--json]        what is installed, and which browser owns http(s)
+  list                   the managed registry (alias: ls)
+  menu setup|teardown|status
+                         keep the Omarchy menu's Browser submenus in sync
+  doctor                 diagnose a broken install or menu integration
+  version                tool, Omarchy and registry versions
+  help                   this text
+
+OPTIONS
+  --dry-run              print what would change, change nothing
+  --no-color             plain output (also honours NO_COLOR)
+  -h, --help             same as help
+  -V, --version          same as version
+
+BROWSERS
+EOF
+
+  local name
+  for name in "${BROWSER_NAMES[@]}"; do
+    printf '  %-10s %s\n' "$name" "$(browser_display "$name")"
+  done
+  printf '  %s\n' "${BROWSER_NAMES[*]}"
+
+  cat <<EOF
+  Stock browsers (${!STOCK_DESKTOP[*]}) can also be set as the default.
+
+The menu lives at Super+X › Install › Browser. Every browser is installed from
+the official repositories or the AUR — nothing is built from source here.
+EOF
+}
+
+print_version() {
+  local omarchy_version='unknown'
+  if command -v omarchy >/dev/null 2>&1; then
+    omarchy_version=$(omarchy version 2>/dev/null | head -n1 || true)
+    [[ -n $omarchy_version ]] || omarchy_version='unknown'
+  fi
+
+  printf 'omarchy-browsers %s\n' "$OMARCHY_BROWSERS_VERSION"
+  printf 'omarchy: %s\n' "$omarchy_version"
+  printf 'browsers: %s\n' "${BROWSER_NAMES[*]}"
+}
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+cmd_status() {
+  local json=0
+
+  while (( $# )); do
+    case $1 in
+    --json | -j) json=1 ;;
+    *)
+      printf "unknown option for status: %s\n" "$1" >&2
+      printf "Run 'omarchy-browsers help' for usage.\n" >&2
+      return 2
+      ;;
+    esac
+    shift
+  done
+
+  if (( json )); then
+    print_status_json
+  else
+    print_status
+  fi
+}
+
+cmd_default() {
+  local name='' check=0
+
+  while (( $# )); do
+    case $1 in
+    --check) check=1 ;;
+    -*)
+      printf 'unknown option for default: %s\n' "$1" >&2
+      return 2
+      ;;
+    *)
+      if [[ -n $name ]]; then
+        printf 'default takes one browser, got %s and %s\n' "$name" "$1" >&2
+        return 2
+      fi
+      name=$1
+      ;;
+    esac
+    shift
+  done
+
+  if [[ -z $name ]]; then
+    if (( check )); then
+      printf 'default --check needs a browser name\n' >&2
+      return 2
+    fi
+    local current
+    current=$(current_default_desktop)
+    printf '%s\n' "${current:-none}"
+    return 0
+  fi
+
+  if (( check )); then
+    check_default "$name"
+    return
+  fi
+
+  set_default_browser "$name"
+}
+
+# expand_all <name…> — replace "all" with the registry order.
+expand_all() {
+  local name
+  for name in "$@"; do
+    if [[ $name == all ]]; then
+      printf '%s\n' "${BROWSER_NAMES[@]}"
+    else
+      printf '%s\n' "$name"
+    fi
+  done
+}
+
+cmd_install() {
+  local -a names=() targets=()
+  local name failures=0
+
+  while (( $# )); do
+    case $1 in
+    -*)
+      printf 'unknown option for install: %s\n' "$1" >&2
+      printf "Run 'omarchy-browsers help' for usage.\n" >&2
+      return 2
+      ;;
+    *) names+=("$1") ;;
+    esac
+    shift
+  done
+
+  if (( ${#names[@]} == 0 )); then
+    printf 'install needs at least one browser (try: install helium)\n' >&2
+    return 2
+  fi
+
+  mapfile -t targets < <(expand_all "${names[@]}")
+
+  for name in "${targets[@]}"; do
+    if ! ( install_browser "$name" ); then
+      failures=$((failures + 1))
+    fi
+  done
+
+  printf '\n%d browser(s) processed.\n' "${#targets[@]}"
+  (( failures == 0 ))
+}
+
+cmd_remove() {
+  local -a names=() targets=()
+  local name purge='' failures=0
+
+  while (( $# )); do
+    case $1 in
+    --purge) purge=--purge ;;
+    -*)
+      printf 'unknown option for remove: %s\n' "$1" >&2
+      printf "Run 'omarchy-browsers help' for usage.\n" >&2
+      return 2
+      ;;
+    *) names+=("$1") ;;
+    esac
+    shift
+  done
+
+  if (( ${#names[@]} == 0 )); then
+    printf 'remove needs at least one browser (try: remove helium)\n' >&2
+    return 2
+  fi
+
+  mapfile -t targets < <(expand_all "${names[@]}")
+
+  for name in "${targets[@]}"; do
+    if ! ( remove_browser "$name" "$purge" ); then
+      failures=$((failures + 1))
+    fi
+  done
+
+  printf '\n%d browser(s) processed.\n' "${#targets[@]}"
+  (( failures == 0 ))
+}
+
+cmd_menu() {
+  local action=${1:-}
+
+  if [[ -z $action ]]; then
+    printf 'menu needs an action: setup, teardown or status\n' >&2
+    printf "Run 'omarchy-browsers help' for usage.\n" >&2
+    return 2
+  fi
+  shift
+
+  if (( $# )); then
+    printf 'unknown option for menu %s: %s\n' "$action" "$1" >&2
+    return 2
+  fi
+
+  case $action in
+  setup) menu_setup ;;
+  teardown) menu_teardown ;;
+  status) menu_status ;;
+  *)
+    printf 'unknown menu action: %s (expected setup, teardown or status)\n' "$action" >&2
+    return 2
+    ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Dispatch
+# ---------------------------------------------------------------------------
+
+command=${1:-help}
+(( $# )) && shift
+
+case $command in
+help | -h | --help) usage ;;
+version | -V | --version) print_version ;;
+list | ls) print_browser_table ;;
+status) cmd_status "$@" ;;
+default) cmd_default "$@" ;;
+install) cmd_install "$@" ;;
+remove) cmd_remove "$@" ;;
+menu) cmd_menu "$@" ;;
+doctor) doctor_run ;;
+*)
+  printf 'unknown command: %s\n' "$command" >&2
+  printf "Run 'omarchy-browsers help' for usage.\n" >&2
+  exit 2
+  ;;
+esac

@@ -1,0 +1,17 @@
+# Test scratch
+/obs-test.*/
+
+# Editor and OS noise
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python bytecode from the font build script
+__pycache__/
+*.pyc
+
+# Local overrides
+.env
+.env.local
