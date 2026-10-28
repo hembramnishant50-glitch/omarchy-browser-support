@@ -78,6 +78,10 @@ omarchy-browsers default helium
 the tool in place. It then runs `menu setup`, which installs the Helium icon
 font and writes the managed menu block.
 
+For the full installation manual — installing the tool, each browser, switching
+between them, removing and uninstalling — see
+[docs/installation.md](docs/installation.md).
+
 **Restart the Omarchy shell once** (or log out and back in) after the first
 `menu setup` so Qt loads `OmarchyHeliumIcon`. The menu rows themselves appear
 immediately — it is only the starburst that waits for the font cache.
@@ -230,10 +234,72 @@ real system and never require Omarchy to be installed. See
 
 ## Uninstall
 
+There are three layers, and the tool draws the lines cleanly between them.
+
+### Uninstall the browsers
+
 ```bash
-./uninstall.sh                 # remove the menu rows + the symlink
-./uninstall.sh --keep-menu     # keep the menu integration
-omarchy-browsers remove all --purge   # also uninstall the browsers
+omarchy-browsers remove all --purge   # every browser in the registry
+omarchy-browsers remove librewolf --purge   # just one
+```
+
+This uninstalls the packages (AUR packages go through Omarchy's AUR flow) and,
+with `--purge`, wipes the profile paths declared in the registry. The default
+browser is handed to a surviving browser first, so you never end up
+default-less.
+
+### Uninstall the menu integration
+
+```bash
+omarchy-browsers menu teardown   # strip the managed block + the icon font
+```
+
+`menu teardown` removes the generated block and the registry-owned icon font
+family — installed browsers are left alone.
+
+### Uninstall the tool itself
+
+```bash
+./uninstall.sh                 # remove the menu rows + the CLI symlink
+./uninstall.sh --keep-menu     # keep the menu integration, drop the CLI
+./uninstall.sh --bin-dir DIR   # if you linked into a different directory
+```
+
+The symlink is only removed when it points back at this checkout, so a symlink
+you moved elsewhere is never deleted.
+
+### Full wipe: tool + browsers
+
+```bash
+omarchy-browsers remove all --purge
+./uninstall.sh
+```
+
+or keep the browsers and drop only the tool:
+
+```bash
+./uninstall.sh --keep-menu
+```
+
+### What an uninstall touches — and what it doesn't
+
+- **Touches:** the managed menu block, the registry-owned icon font, the CLI
+  symlink, and (with `--purge`) the browser profile paths listed in
+  `lib/browsers.tsv`.
+- **Never touches:** anything under `/usr/share/omarchy`, Omarchy itself, browsers
+  installed outside the registry, and files outside the purge paths.
+
+### After uninstalling
+
+```bash
+omarchy-browsers doctor    # or simply: the `omarchy-browsers` command is gone
+```
+
+If you removed the browser that owned your default, re-point the default (a stock
+browser works fine) before you do anything else:
+
+```bash
+omarchy-browsers default <survivor>
 ```
 
 ## Docs
@@ -242,6 +308,7 @@ omarchy-browsers remove all --purge   # also uninstall the browsers
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | layout, data flow, registry contract, invariants |
 | [docs/adding-a-browser.md](docs/adding-a-browser.md) | add a browser end to end, with the checks to run |
+| [docs/installation.md](docs/installation.md) | the full installation manual — install, per-browser installs, switching, removing, uninstalling |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | every symptom and its fix |
 | [docs/helium-icon.md](docs/helium-icon.md) | the glyph, the font build, Qt's cache |
 | [CHANGELOG.md](CHANGELOG.md) | release history |
